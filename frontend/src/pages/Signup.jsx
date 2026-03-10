@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Mail, Lock, Shield, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
-    role: 'Student'
+    password: ''
   });
 
   const handleChange = (e) => {
@@ -17,7 +16,7 @@ export default function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Registration data:', formData);
+    console.log('Secure Registration data:', formData);
   };
 
   return (
@@ -30,7 +29,6 @@ export default function Signup() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}  
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
               <div className="relative">
@@ -48,7 +46,6 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* Email */}    
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">University Email</label>
               <div className="relative">
@@ -66,27 +63,6 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* Role Selection */}    
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Account Role</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Shield className="h-5 w-5 text-gray-400" />
-                </div>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all text-gray-700 appearance-none"
-                >
-                  <option value="Student">Student (General User)</option>
-                  <option value="SocietyAdmin">Society Admin</option>
-                  <option value="SuperAdmin">Super Admin (System)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Password */}    
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <div className="relative">
@@ -128,7 +104,6 @@ export default function Signup() {
         </div>
       </div>
 
-      {/* Right Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-sliit-blue flex-col justify-center items-center p-12 text-white relative overflow-hidden">
         <div className="relative z-10 text-center flex flex-col items-center">
           <GraduationCap className="h-16 w-16 text-sliit-orange mb-6" />

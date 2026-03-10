@@ -11,7 +11,7 @@ const generateToken = (id) => {
 // POST /api/auth/register
 exports.registerUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
 
         // Check if user already exists
         const userExists = await User.findOne({ email });
@@ -28,7 +28,7 @@ exports.registerUser = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role: role || 'Student' // Default to student if no role provided
+            role: 'Student' // Society admins also student.
         });
 
         if (user) {
