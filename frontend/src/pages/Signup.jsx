@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Mail, Lock, Shield, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Shield, Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +17,6 @@ export default function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Connect to backend API
     console.log('Registration data:', formData);
   };
 
@@ -26,12 +25,12 @@ export default function Signup() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
         <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="mb-8 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-            <p className="text-gray-500 mt-2">Join the campus network today.</p>
+            <h2 className="text-3xl font-bold text-gray-900">Join UniConnets</h2>
+            <p className="text-gray-500 mt-2">Create your official campus account.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
+            {/* Full Name */}  
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
               <div className="relative">
@@ -42,14 +41,14 @@ export default function Signup() {
                   type="text"
                   name="name"
                   required
-                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
                   placeholder="John Doe"
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* Email */}
+            {/* Email */}    
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">University Email</label>
               <div className="relative">
@@ -60,14 +59,14 @@ export default function Signup() {
                   type="email"
                   name="email"
                   required
-                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  placeholder="student@university.edu"
+                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
+                  placeholder="student@sliit.lk"
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* Role Selection */}
+            {/* Role Selection */}    
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Account Role</label>
               <div className="relative">
@@ -78,7 +77,7 @@ export default function Signup() {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
-                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-gray-700 appearance-none"
+                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all text-gray-700 appearance-none"
                 >
                   <option value="Student">Student (General User)</option>
                   <option value="SocietyAdmin">Society Admin</option>
@@ -87,7 +86,7 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* Password */}
+            {/* Password */}    
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <div className="relative">
@@ -98,14 +97,14 @@ export default function Signup() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   required
-                  className="pl-10 pr-12 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  className="pl-10 pr-12 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
                   placeholder="••••••••"
                   onChange={handleChange}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sliit-blue"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -114,7 +113,7 @@ export default function Signup() {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-gray-900 hover:bg-black text-white font-semibold rounded-xl transition-all shadow-md mt-4"
+              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-4"
             >
               Create Account
             </button>
@@ -122,7 +121,7 @@ export default function Signup() {
 
           <div className="mt-8 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/" className="font-semibold text-gray-900 hover:underline">
+            <Link to="/" className="font-semibold text-sliit-blue hover:underline">
               Sign in instead
             </Link>
           </div>
@@ -130,11 +129,12 @@ export default function Signup() {
       </div>
 
       {/* Right Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gray-900 flex-col justify-center items-center p-12 text-white relative overflow-hidden">
-        <div className="relative z-10 text-center">
-          <h2 className="text-4xl font-bold mb-6">Start managing events smarter.</h2>
-          <p className="text-gray-400 max-w-md mx-auto">
-            Join thousands of students and societies currently organizing and tracking university events on our platform.
+      <div className="hidden lg:flex lg:w-1/2 bg-sliit-blue flex-col justify-center items-center p-12 text-white relative overflow-hidden">
+        <div className="relative z-10 text-center flex flex-col items-center">
+          <GraduationCap className="h-16 w-16 text-sliit-orange mb-6" />
+          <h2 className="text-4xl font-bold mb-6">Elevate your university experience.</h2>
+          <p className="text-blue-100 max-w-md mx-auto text-lg">
+            Join thousands of SLIIT students currently organizing, tracking, and attending campus events with UniConnets.
           </p>
         </div>
       </div>
