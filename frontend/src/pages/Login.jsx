@@ -1,11 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, GraduationCap } from 'lucide-react';
+import pic1 from '../assets/signup_images/pic1.jpg';
+import pic2 from '../assets/signup_images/pic2.JPG';
+import pic3 from '../assets/signup_images/pic3.JPG';
+import pic4 from '../assets/signup_images/pic4.JPG';
+
+const bgImages = [pic1, pic2, pic3, pic4];
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bgImages.length);
+    }, 10000); // Change image every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,25 +37,36 @@ export default function Login() {
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
       {/* Left Side - SLIIT Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-sliit-blue flex-col justify-between p-12 text-white relative overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-800 rounded-full opacity-50 blur-3xl"></div>
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative overflow-hidden">
+        {/* Background Image Layer */}
+        {bgImages.map((img, index) => (
+          <div
+            key={img}
+            className={`absolute inset-0 z-0 bg-cover bg-center transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+        {/* Black overlay for text readability */}
+        <div className="absolute inset-0 bg-black/80 z-0" />
         
-        <div className="relative z-10 flex items-center gap-3">
+        <div className="relative z-10 flex items-center gap-3 drop-shadow-md">
           <GraduationCap className="h-10 w-10 text-sliit-orange" />
-          <h1 className="text-4xl font-bold tracking-tight">UniConnets</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-shadow-md">UniConnets</h1>
         </div>
         
-        <div className="relative z-10">
-          <h2 className="text-3xl font-semibold mb-4 leading-snug">
+        <div className="relative z-10 drop-shadow-lg">
+          <h2 className="text-3xl font-semibold mb-4 leading-snug text-shadow-md">
             Your Campus.<br/>Your Events.<br/>One Platform.
           </h2>
-          <p className="text-blue-100 text-lg max-w-md">
+          <p className="text-gray-100 text-lg max-w-md text-shadow-sm font-medium">
             The central hub for SLIIT student life. Discover societies, book transport, and never miss an event.
           </p>
         </div>
         
         <div className="relative z-10">
-          <p className="text-sm text-blue-200">© 2026 SLIIT University Event Management</p>
+          <p className="text-sm text-gray-200">© 2026 SLIIT University Event Management</p>
         </div>
       </div>
 

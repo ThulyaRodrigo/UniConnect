@@ -131,7 +131,7 @@ export default function Signup() {
         ))}
         
         {/* Black overlay for text readability */}
-        <div className="absolute inset-0 bg-black/50 z-0" />
+        <div className="absolute inset-0 bg-black/80 z-0" />
         
         <div className="relative z-10 text-center flex flex-col items-center drop-shadow-lg">
           <GraduationCap className="h-16 w-16 text-sliit-orange mb-6 drop-shadow-md" />
