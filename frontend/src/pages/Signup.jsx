@@ -1,14 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import pic1 from '../assets/signup_images/pic1.jpg';
+import pic2 from '../assets/signup_images/pic2.JPG';
+import pic3 from '../assets/signup_images/pic3.JPG';
+import pic4 from '../assets/signup_images/pic4.JPG';
+
+const bgImages = [pic1, pic2, pic3, pic4];
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: ''
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bgImages.length);
+    }, 10000); // Change image every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -104,11 +118,25 @@ export default function Signup() {
         </div>
       </div>
 
-      <div className="hidden lg:flex lg:w-1/2 bg-sliit-blue flex-col justify-center items-center p-12 text-white relative overflow-hidden">
-        <div className="relative z-10 text-center flex flex-col items-center">
-          <GraduationCap className="h-16 w-16 text-sliit-orange mb-6" />
-          <h2 className="text-4xl font-bold mb-6">Elevate your university experience.</h2>
-          <p className="text-blue-100 max-w-md mx-auto text-lg">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center p-12 text-white relative overflow-hidden">
+        {/* Background Image Layer */}
+        {bgImages.map((img, index) => (
+          <div
+            key={img}
+            className={`absolute inset-0 z-0 bg-cover bg-center transition-opacity duration-1000 ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+        
+        {/* Black overlay for text readability */}
+        <div className="absolute inset-0 bg-black/50 z-0" />
+        
+        <div className="relative z-10 text-center flex flex-col items-center drop-shadow-lg">
+          <GraduationCap className="h-16 w-16 text-sliit-orange mb-6 drop-shadow-md" />
+          <h2 className="text-4xl font-bold mb-6 text-shadow-md">Elevate your university experience.</h2>
+          <p className="text-gray-100 max-w-md mx-auto text-lg text-shadow-sm font-medium">
             Join thousands of SLIIT students currently organizing, tracking, and attending campus events with UniConnets.
           </p>
         </div>
