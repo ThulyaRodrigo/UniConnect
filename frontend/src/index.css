@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+@theme {
+  --color-sliit-blue: #053668;
+  --color-sliit-orange: #FF7100;
+  --color-sliit-yellow: #F7ECB5;
+}

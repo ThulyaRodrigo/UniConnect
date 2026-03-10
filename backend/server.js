@@ -15,6 +15,9 @@ app.get('/', (req, res) => {
     res.send('Event Management API is running...');
 });
 
+// Routes
+app.use('/api/auth', require('./routes/authRoutes'));
+
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB Connected Successfully'))
