@@ -54,6 +54,21 @@ export default function MyTickets() {
                 {ticket.transport}
               </div>
             </div>
+
+            {/* Right side: Action */}
+            <div className="bg-gray-50 p-6 flex items-center justify-center sm:w-48 border-t sm:border-t-0 sm:border-l border-gray-200">
+               {ticket.status === 'Confirmed' ? (
+                 <button className="w-full bg-sliit-blue hover:bg-blue-800 text-white font-semibold py-2 rounded-lg transition-colors text-sm">
+                   Download E-Ticket
+                 </button>
+               ) : (
+                 <div className="text-center">
+                   <AlertCircle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+                   <p className="text-xs text-gray-500">Awaiting admin review of payment slip.</p>
+                 </div>
+               )}
+            </div>
+            
           </div>  
         ))}
       </div>
