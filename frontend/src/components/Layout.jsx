@@ -36,6 +36,11 @@ export default function Layout() {
     { name: 'Transport Logistics', path: '/admin/transport', icon: Bus },
   ];
 
+  // Specific navigation appended ONLY if user is a SuperAdmin
+  const superAdminLinks = [
+    { name: 'Society Management', path: '/super/societies', icon: Users },
+    { name: 'Access Handover', path: '/super/handover', icon: ShieldCheck },
+  ];
 
   const handleLogout = () => {
     // Logic to clear JWT token will go here
@@ -115,6 +120,29 @@ export default function Layout() {
             </div>
           )}
           
+          {/* Logical Separation: Super Admin Tools */}
+          {mockUser.role === 'SuperAdmin' && (
+            <div>
+              <p className="px-3 text-xs font-bold text-red-400 uppercase tracking-wider mb-2">System Admin</p>
+              <ul className="space-y-1">
+                {superAdminLinks.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      to={link.path}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                        location.pathname === link.path 
+                          ? 'bg-blue-800 text-white font-medium border-l-4 border-red-500' 
+                          : 'text-blue-100 hover:bg-blue-800/50 hover:text-white border-l-4 border-transparent'
+                      }`}
+                    >
+                      <link.icon className="h-5 w-5" />
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </nav>
       </aside>
 
