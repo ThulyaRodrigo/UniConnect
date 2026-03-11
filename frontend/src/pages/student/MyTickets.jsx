@@ -22,7 +22,13 @@ export default function MyTickets() {
       <div className="space-y-4">
         {myTickets.map((ticket, index) => (
           <div key={index} className="bg-white rounded-2xl border border-gray-200 flex flex-col sm:flex-row overflow-hidden hover:shadow-md transition-shadow">
-
+            {/* Left side: QR/Status Color Bar */}
+            <div className={`w-full sm:w-32 flex flex-col items-center justify-center p-6 border-b sm:border-b-0 sm:border-r border-dashed border-gray-300 ${
+              ticket.status === 'Confirmed' ? 'bg-blue-50' : 'bg-yellow-50'
+            }`}>
+              <TicketIcon className={`h-8 w-8 mb-2 ${ticket.status === 'Confirmed' ? 'text-sliit-blue' : 'text-yellow-600'}`} />
+              <span className="text-xs font-bold text-gray-500">{ticket.id}</span>
+            </div>
           </div>
         ))}
       </div>
