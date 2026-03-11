@@ -1,13 +1,43 @@
+// frontend/src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Layout from './components/Layout';
+
+// Temporary placeholder component to test the layout routing
+const PlaceholderPage = ({ title }) => (
+  <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+    <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
+    <p className="text-gray-500 mt-2">This module is under development.</p>
+  </div>
+);
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes (No Sidebar) */}
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+
+        {/* Protected Routes (Wrapped in the Sidebar Layout) */}
+        <Route element={<Layout />}>
+          {/* General Student Routes */}
+          <Route path="/dashboard" element={<PlaceholderPage title="Student Dashboard" />} />
+          <Route path="/events" element={<PlaceholderPage title="Browse University Events" />} />
+          <Route path="/my-tickets" element={<PlaceholderPage title="My Event Tickets" />} />
+
+          {/* Society Admin Routes */}
+          <Route path="/admin/events" element={<PlaceholderPage title="Manage Society Events" />} />
+          <Route path="/admin/verify-slips" element={<PlaceholderPage title="AI Payment Slip Verification" />} />
+          <Route path="/admin/transport" element={<PlaceholderPage title="Transport & Logistics" />} />
+
+          {/* Super Admin Routes */}
+          <Route path="/super/societies" element={<PlaceholderPage title="Society Management" />} />
+          <Route path="/super/handover" element={<PlaceholderPage title="Access Handover Panel" />} />
+        </Route>
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
