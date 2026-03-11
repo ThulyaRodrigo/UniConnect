@@ -16,7 +16,7 @@ export default function Layout() {
   // to test how the UI physically changes to prevent privilege escalation.
   // ------------------------------------------------------------------------
   const mockUser = {
-    name: 'Thulya Rodrigo',
+    name: 'Kushan Perera',
     email: 'student@sliit.lk',
     role: 'SocietyAdmin', // Change this to switch roles!
     societyName: 'FOSS SLIIT' // Only relevant if role is SocietyAdmin
@@ -163,11 +163,11 @@ export default function Layout() {
           {/* User Profile & Logout */}
           <div className="flex items-center gap-4 border-l border-gray-200 pl-4 lg:border-none lg:pl-0">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-900">Thulya</p>
-              <p className="text-xs text-gray-500">Student</p>
+              <p className="text-sm font-bold text-gray-900">{mockUser.name}</p>
+              <p className="text-xs text-gray-500">{mockUser.role}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-sliit-yellow text-sliit-blue flex items-center justify-center font-bold border border-gray-200">
-              T
+              {mockUser.name.charAt(0)}
             </div>
             <button 
               onClick={handleLogout}
