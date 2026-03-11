@@ -9,6 +9,14 @@ export default function MyTickets() {
       status: 'Confirmed',
       transport: 'Shuttle: SLIIT to Wadduwa', // Using your specific location drop-off!
       type: 'Participant Pass'
+    },
+    {
+      id: 'TKT-8831',
+      event: 'Nawaloka AI & Healthcare Symposium',
+      date: 'March 18, 2026',
+      status: 'Pending Verification',
+      transport: 'No Transport Required',
+      type: 'Standard Entry'
     }
   ];
 
@@ -42,7 +50,7 @@ export default function MyTickets() {
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                    <Clock className="h-3.5 w-3.5" /> Pending AI Verification
+                    <Clock className="h-3.5 w-3.5" /> Pending Verification
                   </span>
                 )}
               </div>
@@ -68,7 +76,7 @@ export default function MyTickets() {
                  </div>
                )}
             </div>
-            
+
           </div>  
         ))}
       </div>
