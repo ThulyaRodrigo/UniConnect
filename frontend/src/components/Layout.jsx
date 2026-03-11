@@ -11,11 +11,29 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // LOGICAL MOCK STATE: 
+  // Change this role to 'Student', 'SocietyAdmin', or 'SuperAdmin' 
+  // to test how the UI physically changes to prevent privilege escalation.
+  // ------------------------------------------------------------------------
+  const mockUser = {
+    name: 'Thulya Rodrigo',
+    email: 'student@sliit.lk',
+    role: 'SocietyAdmin', // Change this to switch roles!
+    societyName: 'FOSS SLIIT' // Only relevant if role is SocietyAdmin
+  };
+
   // Base navigation that EVERY logged-in user sees
   const studentLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Browse Events', path: '/events', icon: Calendar },
     { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
+  ];
+
+  // Specific navigation appended ONLY if user is a SocietyAdmin
+  const societyAdminLinks = [
+    { name: 'Manage Events', path: '/admin/events', icon: Calendar },
+    { name: 'Verify Payments (AI)', path: '/admin/verify-slips', icon: CheckSquare },
+    { name: 'Transport Logistics', path: '/admin/transport', icon: Bus },
   ];
 
 
@@ -71,6 +89,31 @@ export default function Layout() {
             </ul>
           </div>
 
+          {/* Logical Separation: Society Admin Tools */}
+          {mockUser.role === 'SocietyAdmin' && (
+            <div>
+              <p className="px-3 text-xs font-semibold text-sliit-orange uppercase tracking-wider mb-2">
+                {mockUser.societyName} Admin
+              </p>
+              <ul className="space-y-1">
+                {societyAdminLinks.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      to={link.path}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                        location.pathname === link.path 
+                          ? 'bg-blue-800 text-white font-medium border-l-4 border-sliit-orange' 
+                          : 'text-blue-100 hover:bg-blue-800/50 hover:text-white border-l-4 border-transparent'
+                      }`}
+                    >
+                      <link.icon className="h-5 w-5" />
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           
         </nav>
       </aside>
