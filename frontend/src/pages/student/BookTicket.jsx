@@ -39,7 +39,48 @@ export default function BookTicket() {
             </div>
           </div>
 
+          {/* Info Section */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">{event.title}</h1>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><CalendarIcon className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Date</p>
+                  <p className="text-sm text-gray-500">{event.date}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><Clock className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Time</p>
+                  <p className="text-sm text-gray-500">{event.time}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><MapPin className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Location</p>
+                  <p className="text-sm text-gray-500">{event.location}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><Users className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Capacity</p>
+                  <p className="text-sm text-gray-500">{event.availableSeats} seats remaining</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">About this event</h3>
+              <p className="text-gray-600 leading-relaxed">{event.description}</p>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   );
