@@ -1,0 +1,224 @@
+// frontend/src/pages/student/BookTicket.jsx
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { 
+  Calendar as CalendarIcon, MapPin, Clock, Users, 
+  Bus, UploadCloud, Info, CheckCircle, ArrowLeft, FileText 
+} from 'lucide-react';
+
+export default function BookTicket() {
+  const [ticketCount, setTicketCount] = useState(1);
+  const [transportRoute, setTransportRoute] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Mock Event Data
+  const event = {
+    title: 'Nawaloka AI & Healthcare Symposium',
+    society: 'AI Society',
+    date: 'March 18, 2026',
+    time: '09:00 AM - 04:00 PM',
+    location: 'Main Auditorium, SLIIT Campus',
+    price: 500,
+    description: 'Join industry experts from Nawaloka Hospitals to explore how Artificial Intelligence is revolutionizing patient care, predictive diagnostics, and hospital management. This symposium includes hands-on workshops and networking sessions.',
+    image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200',
+    availableSeats: 150,
+  };
+
+  // Mock Transport Data (Showing dynamic capacity logic)
+  const transportOptions = [
+    { id: 1, route: 'Uni to Colombo Fort', remainingSeats: 12 },
+    { id: 2, route: 'Uni to Panadura', remainingSeats: 4 },
+    { id: 3, route: 'Uni to Gampaha', remainingSeats: 0 }, // Simulating a full bus
+  ];
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate API call and AI Verification Trigger
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSuccess(true);
+    }, 1500);
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="max-w-2xl mx-auto mt-12 bg-white p-12 rounded-2xl shadow-sm border border-gray-100 text-center">
+        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="h-10 w-10" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Booking Submitted!</h2>
+        <p className="text-gray-600 mb-8">
+          Your payment slip has been uploaded securely. Our AI system will scan the details, and the society admin will verify your transaction shortly. You will receive your E-Ticket via email once confirmed.
+        </p>
+        <Link to="/my-tickets" className="bg-sliit-blue text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-800 transition-colors">
+          View My Tickets
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Back Button */}
+      <Link to="/events" className="inline-flex items-center text-gray-500 hover:text-sliit-blue transition-colors font-medium">
+        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Events
+      </Link>
+
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        
+        {/* Left Column: Event Details */}
+        <div className="w-full lg:w-3/5 space-y-8">
+          {/* Banner Image */}
+          <div className="h-72 w-full rounded-2xl overflow-hidden relative border border-gray-200 shadow-sm">
+            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-sm font-bold text-sliit-blue shadow-sm">
+              {event.society}
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">{event.title}</h1>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><CalendarIcon className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Date</p>
+                  <p className="text-sm text-gray-500">{event.date}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><Clock className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Time</p>
+                  <p className="text-sm text-gray-500">{event.time}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><MapPin className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Location</p>
+                  <p className="text-sm text-gray-500">{event.location}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-50 text-sliit-blue rounded-lg"><Users className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Capacity</p>
+                  <p className="text-sm text-gray-500">{event.availableSeats} seats remaining</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">About this event</h3>
+              <p className="text-gray-600 leading-relaxed">{event.description}</p>
+            </div>
+          </div>
+        </div>
+        {/* Right Column: Sticky Booking Form */}
+        <div className="w-full lg:w-2/5 sticky top-24">
+          <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Secure Your Spot</h2>
+
+            {/* Ticket Quantity */}
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Number of Tickets</label>
+              <select 
+                value={ticketCount}
+                onChange={(e) => setTicketCount(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none text-gray-900"
+              >
+                {[1, 2, 3, 4].map(num => (
+                  <option key={num} value={num}>{num} {num === 1 ? 'Ticket' : 'Tickets'} - LKR {num * event.price}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Transport Section */}
+            <div className="mb-6">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <Bus className="h-4 w-4 text-sliit-orange" /> Optional Shuttle Service
+              </label>
+              <select 
+                value={transportRoute}
+                onChange={(e) => setTransportRoute(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none text-gray-900"
+              >
+                <option value="">No transport required</option>
+                {transportOptions.map(option => (
+                  <option 
+                    key={option.id} 
+                    value={option.id} 
+                    disabled={option.remainingSeats === 0}
+                  >
+                    {option.route} {option.remainingSeats === 0 ? '(Fully Booked)' : `(${option.remainingSeats} seats left)`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                <Info className="h-3 w-3" /> Shuttle leaves exactly 15 mins after event ends.
+              </p>
+            </div>
+
+            {/* Manual Payment Section */}
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
+              <h4 className="text-sm font-bold text-sliit-blue mb-2">Bank Transfer Details</h4>
+              <p className="text-xs text-blue-800 mb-1">Bank: <strong>Commercial Bank</strong></p>
+              <p className="text-xs text-blue-800 mb-1">Account No: <strong>8900 3456 1123</strong></p>
+              <p className="text-xs text-blue-800">Name: <strong>SLIIT AI Society</strong></p>
+            </div>
+
+            {/* File Upload Zone */}
+            <div className="mb-8">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Upload Payment Slip</label>
+              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploadedFile ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-sliit-blue'}`}>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {uploadedFile ? (
+                    <>
+                      <FileText className="h-8 w-8 text-green-500 mb-2" />
+                      <p className="text-sm font-semibold text-green-700">{uploadedFile.name}</p>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500"><span className="font-semibold text-sliit-blue">Click to upload</span> or drag and drop</p>
+                      <p className="text-xs text-gray-400 mt-1">PNG, JPG, PDF up to 5MB</p>
+                    </>
+                  )}
+                </div>
+                <input type="file" className="hidden" onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf" required />
+              </label>
+            </div>
+
+            {/* Total and Submit */}
+            <div className="flex justify-between items-end mb-6">
+              <div>
+                <p className="text-sm text-gray-500">Total Amount</p>
+                <p className="text-3xl font-bold text-gray-900">LKR {ticketCount * event.price}</p>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isSubmitting || !uploadedFile}
+              className="w-full bg-sliit-orange hover:bg-[#e66600] text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {isSubmitting ? 'Processing Upload...' : 'Confirm Booking'}
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  );
+}

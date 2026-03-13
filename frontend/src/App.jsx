@@ -4,6 +4,11 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Layout from './components/Layout';
 
+import Dashboard from './pages/student/Dashboard';
+import BrowseEvents from './pages/student/BrowseEvents';
+import MyTickets from './pages/student/MyTickets';
+import BookTicket from './pages/student/BookTicket';
+
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
   <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -23,9 +28,10 @@ function App() {
         {/* Protected Routes (Wrapped in the Sidebar Layout) */}
         <Route element={<Layout />}>
           {/* General Student Routes */}
-          <Route path="/dashboard" element={<PlaceholderPage title="Student Dashboard" />} />
-          <Route path="/events" element={<PlaceholderPage title="Browse University Events" />} />
-          <Route path="/my-tickets" element={<PlaceholderPage title="My Event Tickets" />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/events" element={<BrowseEvents />} />
+          <Route path="/events/book/:eventId" element={<BookTicket />} />
+          <Route path="/my-tickets" element={<MyTickets />} />
 
           {/* Society Admin Routes */}
           <Route path="/admin/events" element={<PlaceholderPage title="Manage Society Events" />} />
