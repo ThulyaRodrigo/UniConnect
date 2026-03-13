@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Layout from './components/Layout';
 
+import Dashboard from './pages/student/Dashboard';
 import MyTickets from './pages/student/MyTickets';
 
 // Temporary placeholder component to test the layout routing
@@ -25,7 +26,7 @@ function App() {
         {/* Protected Routes (Wrapped in the Sidebar Layout) */}
         <Route element={<Layout />}>
           {/* General Student Routes */}
-          <Route path="/dashboard" element={<PlaceholderPage title="Student Dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<PlaceholderPage title="Browse University Events" />} />
           <Route path="/my-tickets" element={<MyTickets />} />
 
