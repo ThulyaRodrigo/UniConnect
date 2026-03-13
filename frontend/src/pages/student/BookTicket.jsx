@@ -138,6 +138,14 @@ export default function BookTicket() {
               </p>
             </div>
 
+            {/* Manual Payment Section */}
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
+              <h4 className="text-sm font-bold text-sliit-blue mb-2">Bank Transfer Details</h4>
+              <p className="text-xs text-blue-800 mb-1">Bank: <strong>Commercial Bank</strong></p>
+              <p className="text-xs text-blue-800 mb-1">Account No: <strong>8900 3456 1123</strong></p>
+              <p className="text-xs text-blue-800">Name: <strong>SLIIT AI Society</strong></p>
+            </div>
+
 
           </form>
         </div>
