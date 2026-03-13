@@ -10,6 +10,7 @@ export default function BookTicket() {
   const [ticketCount, setTicketCount] = useState(1);
   const [transportRoute, setTransportRoute] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mock Event Data
   const event = {
@@ -175,7 +176,21 @@ export default function BookTicket() {
               </label>
             </div>
 
+            {/* Total and Submit */}
+            <div className="flex justify-between items-end mb-6">
+              <div>
+                <p className="text-sm text-gray-500">Total Amount</p>
+                <p className="text-3xl font-bold text-gray-900">LKR {ticketCount * event.price}</p>
+              </div>
+            </div>
 
+            <button 
+              type="submit" 
+              disabled={isSubmitting || !uploadedFile}
+              className="w-full bg-sliit-orange hover:bg-[#e66600] text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {isSubmitting ? 'Processing Upload...' : 'Confirm Booking'}
+            </button>
           </form>
         </div>
 
