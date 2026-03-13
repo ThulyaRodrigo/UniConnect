@@ -8,6 +8,7 @@ import {
 
 export default function BookTicket() {
   const [ticketCount, setTicketCount] = useState(1);
+  const [transportRoute, setTransportRoute] = useState('');
 
   // Mock Event Data
   const event = {
@@ -21,6 +22,13 @@ export default function BookTicket() {
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200',
     availableSeats: 150,
   };
+
+  // Mock Transport Data (Showing dynamic capacity logic)
+  const transportOptions = [
+    { id: 1, route: 'Uni to Colombo Fort', remainingSeats: 12 },
+    { id: 2, route: 'Uni to Panadura', remainingSeats: 4 },
+    { id: 3, route: 'Uni to Gampaha', remainingSeats: 0 }, // Simulating a full bus
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -102,6 +110,32 @@ export default function BookTicket() {
                   <option key={num} value={num}>{num} {num === 1 ? 'Ticket' : 'Tickets'} - LKR {num * event.price}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Transport Section */}
+            <div className="mb-6">
+              <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <Bus className="h-4 w-4 text-sliit-orange" /> Optional Shuttle Service
+              </label>
+              <select 
+                value={transportRoute}
+                onChange={(e) => setTransportRoute(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none text-gray-900"
+              >
+                <option value="">No transport required</option>
+                {transportOptions.map(option => (
+                  <option 
+                    key={option.id} 
+                    value={option.id} 
+                    disabled={option.remainingSeats === 0}
+                  >
+                    {option.route} {option.remainingSeats === 0 ? '(Fully Booked)' : `(${option.remainingSeats} seats left)`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                <Info className="h-3 w-3" /> Shuttle leaves exactly 15 mins after event ends.
+              </p>
             </div>
 
 
