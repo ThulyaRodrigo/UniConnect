@@ -1,6 +1,7 @@
 // frontend/src/pages/student/BrowseEvents.jsx
 import React, { useState } from 'react';
 import { Search, MapPin, Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function BrowseEvents() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,9 +108,12 @@ export default function BrowseEvents() {
                   </div>
                 </div>
                 
-                <button className="w-full py-2.5 bg-gray-50 hover:bg-sliit-blue hover:text-white text-sliit-blue border border-gray-200 rounded-xl font-semibold transition-colors">
-                  View & Book
-                </button>
+                <Link 
+                    to={`/events/book/${event.id}`} 
+                    className="w-full block text-center py-2.5 bg-gray-50 hover:bg-sliit-blue hover:text-white text-sliit-blue border border-gray-200 rounded-xl font-semibold transition-colors"
+                >
+                    View & Book
+                </Link>
               </div>
             </div>
           ))}
