@@ -34,6 +34,23 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+
+      {/* Featured Highlight */}
+      <div className="bg-gradient-to-r from-sliit-blue to-blue-900 rounded-2xl p-8 text-white shadow-md relative overflow-hidden">
+        <div className="relative z-10 md:w-2/3">
+          <span className="bg-sliit-orange text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Featured</span>
+          <h2 className="text-3xl font-bold mt-4 mb-2">React Native Appathon 2026</h2>
+          <p className="text-blue-100 mb-6 line-clamp-2">
+            Join the Computing Society for a 24-hour mobile app development challenge. Build, test, and deploy using React Native and Expo.
+          </p>
+          <Link to="/events" className="inline-flex items-center gap-2 bg-white text-sliit-blue font-semibold px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors">
+            Get Tickets Now
+          </Link>
+        </div>
+        <div className="absolute right-0 top-0 h-full w-1/3 opacity-20 hidden md:block">
+          <Calendar className="h-full w-full object-cover scale-150 transform translate-x-10" />
+        </div>
+      </div>
     </div>
   );
 }
