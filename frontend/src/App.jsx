@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/student/Dashboard';
 import BrowseEvents from './pages/student/BrowseEvents';
 import MyTickets from './pages/student/MyTickets';
+import BookTicket from './pages/student/BookTicket';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -29,6 +30,7 @@ function App() {
           {/* General Student Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<BrowseEvents />} />
+          <Route path="/events/book/:eventId" element={<BookTicket />} />
           <Route path="/my-tickets" element={<MyTickets />} />
 
           {/* Society Admin Routes */}
