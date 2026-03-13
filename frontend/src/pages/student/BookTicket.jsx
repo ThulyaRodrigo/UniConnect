@@ -1,5 +1,5 @@
 // frontend/src/pages/student/BookTicket.jsx
-import {  } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Calendar as CalendarIcon, MapPin, Clock, Users, 
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 export default function BookTicket() {
+  const [ticketCount, setTicketCount] = useState(1);
 
   // Mock Event Data
   const event = {
@@ -19,6 +20,10 @@ export default function BookTicket() {
     description: 'Join industry experts from Nawaloka Hospitals to explore how Artificial Intelligence is revolutionizing patient care, predictive diagnostics, and hospital management. This symposium includes hands-on workshops and networking sessions.',
     image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=1200',
     availableSeats: 150,
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
   };
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -79,6 +84,28 @@ export default function BookTicket() {
               <p className="text-gray-600 leading-relaxed">{event.description}</p>
             </div>
           </div>
+        </div>
+        {/* Right Column: Sticky Booking Form */}
+        <div className="w-full lg:w-2/5 sticky top-24">
+          <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Secure Your Spot</h2>
+
+            {/* Ticket Quantity */}
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Number of Tickets</label>
+              <select 
+                value={ticketCount}
+                onChange={(e) => setTicketCount(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none text-gray-900"
+              >
+                {[1, 2, 3, 4].map(num => (
+                  <option key={num} value={num}>{num} {num === 1 ? 'Ticket' : 'Tickets'} - LKR {num * event.price}</option>
+                ))}
+              </select>
+            </div>
+
+
+          </form>
         </div>
 
       </div>
