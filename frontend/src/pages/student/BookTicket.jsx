@@ -9,6 +9,7 @@ import {
 export default function BookTicket() {
   const [ticketCount, setTicketCount] = useState(1);
   const [transportRoute, setTransportRoute] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   // Mock Event Data
   const event = {
@@ -29,6 +30,12 @@ export default function BookTicket() {
     { id: 2, route: 'Uni to Panadura', remainingSeats: 4 },
     { id: 3, route: 'Uni to Gampaha', remainingSeats: 0 }, // Simulating a full bus
   ];
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -144,6 +151,28 @@ export default function BookTicket() {
               <p className="text-xs text-blue-800 mb-1">Bank: <strong>Commercial Bank</strong></p>
               <p className="text-xs text-blue-800 mb-1">Account No: <strong>8900 3456 1123</strong></p>
               <p className="text-xs text-blue-800">Name: <strong>SLIIT AI Society</strong></p>
+            </div>
+
+            {/* File Upload Zone */}
+            <div className="mb-8">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Upload Payment Slip</label>
+              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploadedFile ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-sliit-blue'}`}>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {uploadedFile ? (
+                    <>
+                      <FileText className="h-8 w-8 text-green-500 mb-2" />
+                      <p className="text-sm font-semibold text-green-700">{uploadedFile.name}</p>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
+                      <p className="text-sm text-gray-500"><span className="font-semibold text-sliit-blue">Click to upload</span> or drag and drop</p>
+                      <p className="text-xs text-gray-400 mt-1">PNG, JPG, PDF up to 5MB</p>
+                    </>
+                  )}
+                </div>
+                <input type="file" className="hidden" onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf" required />
+              </label>
             </div>
 
 
