@@ -11,6 +11,7 @@ export default function BookTicket() {
   const [transportRoute, setTransportRoute] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Mock Event Data
   const event = {
@@ -40,7 +41,30 @@ export default function BookTicket() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    // Simulate API call and AI Verification Trigger
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSuccess(true);
+    }, 1500);
   };
+
+  if (isSuccess) {
+    return (
+      <div className="max-w-2xl mx-auto mt-12 bg-white p-12 rounded-2xl shadow-sm border border-gray-100 text-center">
+        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="h-10 w-10" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Booking Submitted!</h2>
+        <p className="text-gray-600 mb-8">
+          Your payment slip has been uploaded securely. Our AI system will scan the details, and the society admin will verify your transaction shortly. You will receive your E-Ticket via email once confirmed.
+        </p>
+        <Link to="/my-tickets" className="bg-sliit-blue text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-800 transition-colors">
+          View My Tickets
+        </Link>
+      </div>
+    );
+  }
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Back Button */}
