@@ -1,9 +1,8 @@
-// frontend/src/components/Layout.jsx
 import { useState } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
-  CheckSquare, Users, LogOut, Menu, X, GraduationCap, CalendarDays, MessageSquare 
+  CheckSquare, Users, LogOut, Menu, X, GraduationCap, CalendarDays, MessageSquare, User 
 } from 'lucide-react';
 
 export default function Layout() {
@@ -18,7 +17,7 @@ export default function Layout() {
   const mockUser = {
     name: 'Kushan Perera',
     email: 'student@sliit.lk',
-    role: 'SuperAdmin', // Change this to switch roles!
+    role: 'SocietyAdmin', // Change this to switch roles!
     societyName: 'FOSS SLIIT' // Only relevant if role is SocietyAdmin
   };
 
@@ -28,7 +27,9 @@ export default function Layout() {
     { name: 'Browse Events', path: '/events', icon: Calendar },
     { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
     { name: 'Campus Calendar', path: '/calendar', icon: CalendarDays },
-    { name: 'Society Q&A', path: '/chat', icon: MessageSquare }
+    { name: 'Society Q&A', path: '/chat', icon: MessageSquare },
+    { name: 'My Profile & Settings', path: '/profile', icon: User },
+    { name: 'Give System Feedback', path: '/feedback', icon: MessageSquare }
   ];
 
   // Specific navigation appended ONLY if user is a SocietyAdmin
