@@ -1,4 +1,3 @@
-// frontend/src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -21,6 +20,7 @@ import CalendarView from './pages/student/CalendarView';
 import SocietyChat from './pages/shared/SocietyChat';
 import SocietyDetails from './pages/super/SocietyDetails';
 import ProfileSettings from './pages/shared/ProfileSettings';
+import SystemFeedback from './pages/shared/SystemFeedback';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -49,6 +49,7 @@ function App() {
           <Route path="/chat" element={<SocietyChat />} />
           <Route path="/super/societies/:id" element={<SocietyDetails />} />  
           <Route path="/profile" element={<ProfileSettings />} />
+          <Route path="/feedback" element={<SystemFeedback />} />
 
           {/* Society Admin Routes */}
           <Route path="/admin/events" element={<ManageEvents />} />
