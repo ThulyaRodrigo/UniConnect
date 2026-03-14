@@ -75,6 +75,43 @@ export default function Handover() {
           </List>
         </Paper>
 
+        {/* Right Pane: Promote New Students */}
+        <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ p: 3, backgroundColor: '#f0fdf4', borderBottom: '1px solid #bbf7d0' }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: '#166534', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <UserPlus size={20} /> Appoint New Board
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#15803d' }}>Search for students and elevate them to Society Admin.</Typography>
+          </Box>
+          
+          <Box sx={{ p: 3 }}>
+            <div className="relative mb-4">
+              <input 
+                type="text" 
+                placeholder="Search by SLIIT ID or Email..." 
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+              />
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
+
+            {/* Mock Search Result */}
+            <Box sx={{ p: 2, border: '1px solid #e5e7eb', borderRadius: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box>
+                <Typography fontWeight="bold">Dilshan Rajapaksha</Typography>
+                <Typography variant="body2" color="text.secondary">IT22005566 • Currently: Student</Typography>
+              </Box>
+              <Button 
+                size="small" 
+                variant="contained" 
+                color="success"
+                sx={{ textTransform: 'none', borderRadius: 2, boxShadow: 'none' }}
+              >
+                Promote
+              </Button>
+            </Box>
+          </Box>
+        </Paper>
+
       </div>
     </div>
   );
