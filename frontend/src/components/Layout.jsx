@@ -18,7 +18,7 @@ export default function Layout() {
   const mockUser = {
     name: 'Kushan Perera',
     email: 'student@sliit.lk',
-    role: 'SocietyAdmin', // Change this to switch roles!
+    role: 'SuperAdmin', // Change this to switch roles!
     societyName: 'FOSS SLIIT' // Only relevant if role is SocietyAdmin
   };
 
@@ -40,6 +40,7 @@ export default function Layout() {
   const superAdminLinks = [
     { name: 'Society Management', path: '/super/societies', icon: Users },
     { name: 'Access Handover', path: '/super/handover', icon: ShieldCheck },
+    { name: 'Master Routes', path: '/super/routes', icon: Bus },
   ];
 
   const handleLogout = () => {

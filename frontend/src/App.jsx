@@ -13,6 +13,8 @@ import ManageEvents from './pages/admin/ManageEvents';
 import VerifySlips from './pages/admin/VerifySlips';
 import TransportLogistics from './pages/admin/TransportLogistics';
 
+import MasterRoutes from './pages/super/MasterRoutes';
+
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
   <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -45,6 +47,7 @@ function App() {
           {/* Super Admin Routes */}
           <Route path="/super/societies" element={<PlaceholderPage title="Society Management" />} />
           <Route path="/super/handover" element={<PlaceholderPage title="Access Handover Panel" />} />
+          <Route path="/super/routes" element={<MasterRoutes />} />
         </Route>
 
         {/* Fallback */}
