@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Plus, Settings, Users } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Societies() {
   const [open, setOpen] = useState(false);
@@ -73,8 +74,7 @@ export default function Societies() {
                     <Typography variant="caption" color="text.secondary" fontWeight="medium">Board Members</Typography>
                   </Box>
                 </Box>
-
-                <Button fullWidth variant="outlined" startIcon={<Settings size={16} />} sx={{ color: '#053668', borderColor: '#e5e7eb', textTransform: 'none', borderRadius: 2 }}>
+                <Button component={Link} to={`/super/societies/${soc.id}`} fullWidth variant="outlined" startIcon={<Settings size={16} />} sx={{ color: '#053668', borderColor: '#e5e7eb', textTransform: 'none', borderRadius: 2 }}>
                   Manage Details
                 </Button>
               </CardContent>
