@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, 
-  TextField, MenuItem, Box, IconButton, Typography
+  TextField, MenuItem, Box, IconButton, Typography, 
 } from '@mui/material';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, FileSpreadsheet } from 'lucide-react';
 
 export default function ManageEvents() {
   const [open, setOpen] = useState(false);
@@ -56,6 +56,14 @@ export default function ManageEvents() {
                 <TableCell>{row.category}</TableCell>
                 <TableCell>{row.capacity}</TableCell>
                 <TableCell align="right">
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    startIcon={<FileSpreadsheet size={16} />}
+                    sx={{ mr: 2, color: '#166534', borderColor: '#bbf7d0', backgroundColor: '#f0fdf4', textTransform: 'none' }}
+                  >
+                    Export Excel
+                  </Button>
                   <IconButton size="small" sx={{ color: '#053668', mr: 1 }}><Edit2 size={18} /></IconButton>
                   <IconButton size="small" color="error"><Trash2 size={18} /></IconButton>
                 </TableCell>
