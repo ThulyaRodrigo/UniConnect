@@ -11,6 +11,7 @@ import BookTicket from './pages/student/BookTicket';
 
 import ManageEvents from './pages/admin/ManageEvents';
 import VerifySlips from './pages/admin/VerifySlips';
+import TransportLogistics from './pages/admin/TransportLogistics';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -39,7 +40,7 @@ function App() {
           {/* Society Admin Routes */}
           <Route path="/admin/events" element={<ManageEvents />} />
           <Route path="/admin/verify-slips" element={<VerifySlips />} />
-          <Route path="/admin/transport" element={<PlaceholderPage title="Transport & Logistics" />} />
+          <Route path="/admin/transport" element={<TransportLogistics />} />
 
           {/* Super Admin Routes */}
           <Route path="/super/societies" element={<PlaceholderPage title="Society Management" />} />
