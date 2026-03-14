@@ -1,10 +1,23 @@
-import { useState } from 'react';
-import { 
-  Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, 
-  TextField, Typography, Box 
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography
 } from '@mui/material';
-import { MapPin, Plus, Edit2, Trash2, ShieldAlert } from 'lucide-react';
+import { Edit2, MapPin, Plus, ShieldAlert, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function MasterRoutes() {
   const [open, setOpen] = useState(false);
@@ -38,6 +51,41 @@ export default function MasterRoutes() {
           <strong>System Note:</strong> Routes added here will automatically become available to all Society Admins when they enable transport for an upcoming event.
         </Typography>
       </Box>
+
+      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3 }}>
+        <Table sx={{ minWidth: 650 }}>
+          <TableHead sx={{ backgroundColor: '#f8fafc' }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>Route ID</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Destination & Path</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Standard Capacity</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {routes.map((row) => (
+              <TableRow key={row.id} hover>
+                <TableCell sx={{ fontWeight: 500, color: '#053668' }}>{row.id}</TableCell>
+                <TableCell>
+                    <span className="inline-block align-middle mr-1">
+                        <MapPin size={16} className="text-gray-400" />
+                    </span>
+                    <span className="align-middle">{row.destination}</span>
+                </TableCell>
+                <TableCell>{row.capacity} Seats</TableCell>
+                <TableCell>
+                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">{row.status}</span>
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton size="small" sx={{ color: '#053668', mr: 1 }}><Edit2 size={18} /></IconButton>
+                  <IconButton size="small" color="error"><Trash2 size={18} /></IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* Add Master Route Modal */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
