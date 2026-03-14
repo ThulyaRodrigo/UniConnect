@@ -28,7 +28,39 @@ export default function CalendarView() {
         </div>
       </div>
 
-      
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Days of the week header */}
+        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200 text-center py-3">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="text-sm font-bold text-gray-500 uppercase tracking-wider">{day}</div>
+          ))}
+        </div>
+        
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-px bg-gray-200">
+          {/* Empty slots for start of month offset */}
+          <div className="bg-white min-h-[120px] p-2"></div>
+          <div className="bg-white min-h-[120px] p-2"></div>
+          
+          {days.map(day => {
+            const dayEvents = events.filter(e => e.date === day);
+            return (
+              <div key={day} className="bg-white min-h-[120px] p-2 hover:bg-gray-50 transition-colors group relative">
+                <span className={`text-sm font-semibold ${day === 18 ? 'bg-sliit-blue text-white w-7 h-7 flex items-center justify-center rounded-full' : 'text-gray-700'}`}>
+                  {day}
+                </span>
+                <div className="mt-2 space-y-1">
+                  {dayEvents.map((evt, idx) => (
+                    <div key={idx} className="px-2 py-1 text-xs rounded-md bg-orange-50 border border-orange-100 text-sliit-orange font-medium truncate cursor-pointer hover:bg-orange-100">
+                      {evt.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
