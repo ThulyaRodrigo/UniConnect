@@ -1,26 +1,10 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography
-} from '@mui/material';
-import { Calendar as CalendarIcon, Edit2, Plus, Trash2 } from 'lucide-react';
-
-import { FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
+import { 
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
+  Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, 
+  TextField, MenuItem, Box, IconButton, Typography
+} from '@mui/material';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon } from 'lucide-react';
 
 export default function ManageEvents() {
   const [open, setOpen] = useState(false);
@@ -33,6 +17,7 @@ export default function ManageEvents() {
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -71,14 +56,6 @@ export default function ManageEvents() {
                 <TableCell>{row.category}</TableCell>
                 <TableCell>{row.capacity}</TableCell>
                 <TableCell align="right">
-                  <Button 
-                    size="small" 
-                    variant="outlined" 
-                    startIcon={<FileSpreadsheet size={16} />}
-                    sx={{ mr: 2, color: '#166534', borderColor: '#bbf7d0', backgroundColor: '#f0fdf4', textTransform: 'none' }}
-                  >
-                    Export Excel
-                  </Button>
                   <IconButton size="small" sx={{ color: '#053668', mr: 1 }}><Edit2 size={18} /></IconButton>
                   <IconButton size="small" color="error"><Trash2 size={18} /></IconButton>
                 </TableCell>
@@ -126,8 +103,6 @@ export default function ManageEvents() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      
     </div>
   );
 }
