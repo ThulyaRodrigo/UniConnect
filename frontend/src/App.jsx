@@ -9,6 +9,8 @@ import BrowseEvents from './pages/student/BrowseEvents';
 import MyTickets from './pages/student/MyTickets';
 import BookTicket from './pages/student/BookTicket';
 
+import ManageEvents from './pages/admin/ManageEvents';
+
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
   <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -34,7 +36,7 @@ function App() {
           <Route path="/my-tickets" element={<MyTickets />} />
 
           {/* Society Admin Routes */}
-          <Route path="/admin/events" element={<PlaceholderPage title="Manage Society Events" />} />
+          <Route path="/admin/events" element={<ManageEvents />} />
           <Route path="/admin/verify-slips" element={<PlaceholderPage title="AI Payment Slip Verification" />} />
           <Route path="/admin/transport" element={<PlaceholderPage title="Transport & Logistics" />} />
 
