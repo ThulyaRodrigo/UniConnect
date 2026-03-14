@@ -7,6 +7,9 @@ import {
 import { Bot, CheckCircle, XCircle, FileText } from 'lucide-react';
 
 export default function VerifySlips() {
+  const [selectedSlip, setSelectedSlip] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+
   // Mock data
   const [pendingVerifications, setPendingVerifications] = useState([
     {
@@ -36,9 +39,25 @@ export default function VerifySlips() {
         refFound: 'Unreadable',
         matchConfidence: '45%'
       },
-      slipImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=400'
+      slipImage: 'https://images.unsplash.com/photo-1622535786898-f7b5ccd28226?q=80&w=1674&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&q=80&w=400&h=400'
     }
   ]);
+
+  const handleOpen = (slip) => {
+    setSelectedSlip(slip);
+    setOpenModal(true);
+  };
+
+  const handleClose = () => {
+    setOpenModal(false);
+    setSelectedSlip(null);
+  };
+
+  const handleVerify = (id, action) => {
+    // In a real app, this sends an Axios PUT request to update status
+    setPendingVerifications(prev => prev.filter(slip => slip.id !== id));
+    handleClose();
+  };
 
   return (
     <div className="space-y-6">
@@ -82,7 +101,7 @@ export default function VerifySlips() {
                   <Button 
                     variant="contained" 
                     size="small"
-                    onClick={() => {}}
+                    onClick={() => handleOpen(row)}
                     sx={{ backgroundColor: '#053668', '&:hover': { backgroundColor: '#042850' }, borderRadius: 2, textTransform: 'none' }}
                   >
                     Review Slip
@@ -101,6 +120,88 @@ export default function VerifySlips() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* MUI Dialog (Modal) for the split-screen verification */}
+      <Dialog open={openModal} onClose={handleClose} maxWidth="md" fullWidth>
+        {selectedSlip && (
+          <>
+            <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FileText size={24} className="text-sliit-blue" />
+              Verify Transaction: {selectedSlip.id}
+            </DialogTitle>
+            <Divider />
+            
+            <DialogContent sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, pt: 4 }}>
+              
+              {/* Left Side: The Uploaded Image */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 2, color: 'text.secondary', fontWeight: 'bold' }}>
+                  UPLOADED BANK SLIP
+                </Typography>
+                <Box 
+                  component="img"
+                  src={selectedSlip.slipImage}
+                  alt="Payment Slip"
+                  sx={{ width: '100%', height: 'auto', borderRadius: 2, border: '1px solid #e5e7eb', boxShadow: 1 }}
+                />
+              </Box>
+
+              {/* Right Side: AI Extraction Data */}
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ p: 3, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0' }}>
+                  <Typography variant="overline" sx={{ color: '#166534', fontWeight: 'bold' }}>Student Claimed</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#166534' }}>LKR {selectedSlip.claimedAmount}</Typography>
+                </Box>
+
+                <Box sx={{ p: 3, bgcolor: '#eff6ff', borderRadius: 2, border: '1px solid #bfdbfe' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Bot size={20} className="text-blue-700" />
+                    <Typography variant="overline" sx={{ color: '#1d4ed8', fontWeight: 'bold' }}>AI Extracted Data</Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Amount Found:</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', color: selectedSlip.aiExtraction.amountFound === selectedSlip.claimedAmount ? '#166534' : '#dc2626' }}>
+                      LKR {selectedSlip.aiExtraction.amountFound}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Date Read:</Typography>
+                    <Typography variant="body1" fontWeight="medium">{selectedSlip.aiExtraction.dateFound}</Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Ref Number:</Typography>
+                    <Typography variant="body1" fontWeight="medium" fontFamily="monospace">{selectedSlip.aiExtraction.refFound}</Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </DialogContent>
+            
+            <Divider />
+            <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
+              <Button 
+                onClick={() => handleVerify(selectedSlip.id, 'Reject')} 
+                color="error" 
+                variant="outlined"
+                startIcon={<XCircle size={18} />}
+                sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+              >
+                Reject Slip
+              </Button>
+              <Button 
+                onClick={() => handleVerify(selectedSlip.id, 'Approve')} 
+                variant="contained"
+                startIcon={<CheckCircle size={18} />}
+                sx={{ backgroundColor: '#FF7100', '&:hover': { backgroundColor: '#e66600' }, borderRadius: 2, textTransform: 'none', px: 4 }}
+              >
+                Verify & Approve
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </div>
   );
 }
