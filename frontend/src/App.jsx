@@ -15,6 +15,7 @@ import TransportLogistics from './pages/admin/TransportLogistics';
 
 import MasterRoutes from './pages/super/MasterRoutes';
 import Societies from './pages/super/Societies';
+import Handover from './pages/super/Handover';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -47,7 +48,7 @@ function App() {
 
           {/* Super Admin Routes */}
           <Route path="/super/societies" element={<Societies />} />
-          <Route path="/super/handover" element={<PlaceholderPage title="Access Handover Panel" />} />
+          <Route path="/super/handover" element={<Handover />} />
           <Route path="/super/routes" element={<MasterRoutes />} />
         </Route>
 
