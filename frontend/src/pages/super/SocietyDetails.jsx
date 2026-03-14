@@ -42,7 +42,20 @@ export default function SocietyDetails() {
           </Paper>
         </Grid>
 
-        
+        {/* Recent Events */}
+        <Grid item xs={12} md={6}>
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid #e5e7eb', borderRadius: 3, height: '100%' }}>
+            <Typography variant="h6" fontWeight="bold" mb={3} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Calendar size={20} className="text-sliit-blue" /> Recent Events Hosted
+            </Typography>
+            <List>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <Typography fontWeight="medium">Python Competitive Meetup</Typography>
+                <Typography variant="body2" color="text.secondary">March 15, 2026</Typography>
+              </div>
+            </List>
+          </Paper>
+        </Grid>
       </Grid>
     </div>
   );
