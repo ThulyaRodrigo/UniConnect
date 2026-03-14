@@ -20,6 +20,7 @@ import Handover from './pages/super/Handover';
 import CalendarView from './pages/student/CalendarView';
 import SocietyChat from './pages/shared/SocietyChat';
 import SocietyDetails from './pages/super/SocietyDetails';
+import ProfileSettings from './pages/shared/ProfileSettings';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/my-tickets" element={<MyTickets />} />
           <Route path="/chat" element={<SocietyChat />} />
           <Route path="/super/societies/:id" element={<SocietyDetails />} />  
+          <Route path="/profile" element={<ProfileSettings />} />
 
           {/* Society Admin Routes */}
           <Route path="/admin/events" element={<ManageEvents />} />
