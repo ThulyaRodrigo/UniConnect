@@ -17,6 +17,8 @@ import MasterRoutes from './pages/super/MasterRoutes';
 import Societies from './pages/super/Societies';
 import Handover from './pages/super/Handover';
 
+import CalendarView from './pages/student/CalendarView';
+
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
   <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -38,6 +40,7 @@ function App() {
           {/* General Student Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<BrowseEvents />} />
+          <Route path="/calendar" element={<CalendarView />} />
           <Route path="/events/book/:eventId" element={<BookTicket />} />
           <Route path="/my-tickets" element={<MyTickets />} />
 
