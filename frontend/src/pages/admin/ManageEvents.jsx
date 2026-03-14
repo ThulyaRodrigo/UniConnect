@@ -23,11 +23,16 @@ import { FileSpreadsheet } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ManageEvents() {
+  const [open, setOpen] = useState(false);
+  const categories = ['Technology', 'Musical', 'Cultural', 'Sport', 'Religion'];
 
   const [events, setEvents] = useState([
     { id: 'EVT-001', title: 'Python Competitive Programming Meetup', date: '2026-03-15', category: 'Technology', capacity: 120, price: 0 },
     { id: 'EVT-002', title: 'Open Source Contribution Workshop', date: '2026-04-02', category: 'Technology', capacity: 50, price: 200 },
   ]);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -38,7 +43,7 @@ export default function ManageEvents() {
         <Button 
           variant="contained" 
           startIcon={<Plus size={20} />}
-          onClick={() => {}}
+          onClick={handleOpen}
           sx={{ backgroundColor: '#FF7100', '&:hover': { backgroundColor: '#e66600' }, borderRadius: 2, textTransform: 'none', px: 3, py: 1.5 }}
         >
           Create New Event
@@ -82,6 +87,45 @@ export default function ManageEvents() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Create Event Modal */}
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CalendarIcon size={24} className="text-sliit-blue" />
+          Create New Event
+        </DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+          <TextField label="Event Title" fullWidth variant="outlined" size="small" />
+          
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField label="Date" type="date" fullWidth size="small" InputLabelProps={{ shrink: true }} />
+            <TextField label="Time" type="time" fullWidth size="small" InputLabelProps={{ shrink: true }} />
+          </Box>
+
+          <TextField select label="Category" fullWidth size="small" defaultValue="">
+            {categories.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField label="Location (e.g., Main Auditorium)" fullWidth size="small" />
+          
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField label="Ticket Price (LKR)" type="number" fullWidth size="small" helperText="Enter 0 for free events" />
+            <TextField label="Total Capacity" type="number" fullWidth size="small" />
+          </Box>
+
+          <TextField label="Event Description" multiline rows={4} fullWidth size="small" />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleClose} color="inherit" sx={{ textTransform: 'none' }}>Cancel</Button>
+          <Button onClick={handleClose} variant="contained" sx={{ backgroundColor: '#053668', '&:hover': { backgroundColor: '#042850' }, textTransform: 'none' }}>
+            Publish Event
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       
     </div>
