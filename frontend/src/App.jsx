@@ -14,6 +14,7 @@ import VerifySlips from './pages/admin/VerifySlips';
 import TransportLogistics from './pages/admin/TransportLogistics';
 
 import MasterRoutes from './pages/super/MasterRoutes';
+import Societies from './pages/super/Societies';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -45,7 +46,7 @@ function App() {
           <Route path="/admin/transport" element={<TransportLogistics />} />
 
           {/* Super Admin Routes */}
-          <Route path="/super/societies" element={<PlaceholderPage title="Society Management" />} />
+          <Route path="/super/societies" element={<Societies />} />
           <Route path="/super/handover" element={<PlaceholderPage title="Access Handover Panel" />} />
           <Route path="/super/routes" element={<MasterRoutes />} />
         </Route>
