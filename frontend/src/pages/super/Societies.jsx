@@ -83,6 +83,24 @@ export default function Societies() {
         ))}
       </Grid>
 
+      {/* Register Society Modal */}
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Register New Society</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 2 }}>
+          <TextField label="Society Full Name" placeholder="e.g., IEEE Student Branch" fullWidth size="small" />
+          <TextField select label="Category" fullWidth size="small" defaultValue="">
+            {categories.map((option) => (
+              <MenuItem key={option} value={option}>{option}</MenuItem>
+            ))}
+          </TextField>
+          <TextField label="Brief Description" multiline rows={3} fullWidth size="small" />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpen(false)} color="inherit" sx={{ textTransform: 'none' }}>Cancel</Button>
+          <Button onClick={() => setOpen(false)} variant="contained" sx={{ backgroundColor: '#053668', textTransform: 'none' }}>Register</Button>
+        </DialogActions>
+      </Dialog>
+
     </div>
   );
 }
