@@ -1,4 +1,3 @@
-// frontend/src/pages/super/Handover.jsx
 import { useState } from 'react';
 import { 
   Paper, Typography, Box, Button, TextField, MenuItem, 
@@ -39,7 +38,44 @@ export default function Handover() {
         </TextField>
       </Paper>
 
-      
+      {/* Dual Pane Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Left Pane: Current Admins (Revoke Power) */}
+        <Paper elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ p: 3, backgroundColor: '#fef2f2', borderBottom: '1px solid #fecaca' }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: '#991b1b', display: 'flex', alignItems: 'center', gap: 1 }}>
+              <UserMinus size={20} /> Current Board Members
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#b91c1c' }}>Demote these accounts back to standard Student role.</Typography>
+          </Box>
+          <List sx={{ p: 0 }}>
+            {currentBoard.map((member, index) => (
+              <div key={member.id}>
+                <ListItem sx={{ py: 2 }}>
+                  <ListItemAvatar>
+                    <Avatar sx={{ bgcolor: '#fee2e2', color: '#dc2626', fontWeight: 'bold' }}>{member.name.charAt(0)}</Avatar>
+                  </ListItemAvatar>
+                  <ListItemText 
+                    primary={<Typography fontWeight="bold" color="text.primary">{member.name}</Typography>}
+                    secondary={`${member.id} • ${member.email}`}
+                  />
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    color="error"
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                  >
+                    Revoke Access
+                  </Button>
+                </ListItem>
+                {index !== currentBoard.length - 1 && <Divider />}
+              </div>
+            ))}
+          </List>
+        </Paper>
+
+      </div>
     </div>
   );
 }
