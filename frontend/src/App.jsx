@@ -18,6 +18,8 @@ import Societies from './pages/super/Societies';
 import Handover from './pages/super/Handover';
 
 import CalendarView from './pages/student/CalendarView';
+import SocietyChat from './pages/shared/SocietyChat';
+import SocietyDetails from './pages/super/SocietyDetails';
 
 // Temporary placeholder component to test the layout routing
 const PlaceholderPage = ({ title }) => (
@@ -43,6 +45,8 @@ function App() {
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/events/book/:eventId" element={<BookTicket />} />
           <Route path="/my-tickets" element={<MyTickets />} />
+          <Route path="/chat" element={<SocietyChat />} />
+          <Route path="/super/societies/:id" element={<SocietyDetails />} />  
 
           {/* Society Admin Routes */}
           <Route path="/admin/events" element={<ManageEvents />} />
