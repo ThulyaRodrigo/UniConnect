@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
-  CheckSquare, Users, LogOut, Menu, X, GraduationCap 
+  CheckSquare, Users, LogOut, Menu, X, GraduationCap, CalendarDays 
 } from 'lucide-react';
 
 export default function Layout() {
@@ -18,7 +18,7 @@ export default function Layout() {
   const mockUser = {
     name: 'Kushan Perera',
     email: 'student@sliit.lk',
-    role: 'SuperAdmin', // Change this to switch roles!
+    role: 'SocietyAdmin', // Change this to switch roles!
     societyName: 'FOSS SLIIT' // Only relevant if role is SocietyAdmin
   };
 
@@ -27,6 +27,7 @@ export default function Layout() {
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Browse Events', path: '/events', icon: Calendar },
     { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
+    { name: 'Campus Calendar', path: '/calendar', icon: CalendarDays },
   ];
 
   // Specific navigation appended ONLY if user is a SocietyAdmin
