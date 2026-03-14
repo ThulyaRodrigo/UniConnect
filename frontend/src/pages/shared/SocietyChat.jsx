@@ -47,6 +47,48 @@ export default function SocietyChat() {
         </div>
       </div>
 
+      {/* Right Sidebar - Active Chat */}
+      <div className="w-2/3 flex flex-col">
+        {/* Chat Header */}
+        <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-sliit-blue text-white flex items-center justify-center"><User className="h-4 w-4" /></div>
+            <div>
+              <p className="font-bold text-gray-900">{activeChat.name}</p>
+              <p className="text-xs text-green-500 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> {activeChat.status}</p>
+            </div>
+          </div>
+          <button className="text-gray-400 hover:text-sliit-blue"><Info className="h-5 w-5" /></button>
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+          {activeChat.messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[70%] rounded-2xl px-5 py-3 ${msg.sender === 'me' ? 'bg-sliit-blue text-white rounded-br-none' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'}`}>
+                <p className="text-sm">{msg.text}</p>
+                <p className={`text-[10px] mt-1 text-right ${msg.sender === 'me' ? 'text-blue-200' : 'text-gray-400'}`}>{msg.time}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 bg-white border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            <input 
+              type="text" 
+              placeholder="Type your message..." 
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-5 py-2.5 outline-none focus:ring-2 focus:ring-sliit-blue text-sm"
+            />
+            <button className="h-10 w-10 bg-sliit-orange hover:bg-[#e66600] text-white rounded-full flex items-center justify-center transition-colors shadow-md">
+              <Send className="h-4 w-4 ml-1" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
