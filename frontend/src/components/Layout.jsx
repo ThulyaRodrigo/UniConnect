@@ -99,7 +99,7 @@ export default function Layout() {
         {/* Sidebar Header / Branding */}
         <div className="flex items-center justify-center h-20 border-b border-blue-800">
           <GraduationCap className="h-8 w-8 text-sliit-orange mr-3" />
-          <h1 className="text-2xl font-bold tracking-wide">UniConnets</h1>
+          <h1 className="text-2xl font-bold tracking-wide">UniConnet</h1>
         </div>
 
         {/* Navigation Links */}

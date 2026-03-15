@@ -38,7 +38,7 @@ export default function Signup() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
         <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="mb-8 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-gray-900">Join UniConnets</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Join UniConnet</h2>
             <p className="text-gray-500 mt-2">Create your official campus account.</p>
           </div>
 
@@ -137,7 +137,7 @@ export default function Signup() {
           <GraduationCap className="h-16 w-16 text-sliit-orange mb-6 drop-shadow-md" />
           <h2 className="text-4xl font-bold mb-6 text-shadow-md">Elevate your university experience.</h2>
           <p className="text-gray-100 max-w-md mx-auto text-lg text-shadow-sm font-medium">
-            Join thousands of SLIIT students currently organizing, tracking, and attending campus events with UniConnets.
+            Join thousands of SLIIT students currently organizing, tracking, and attending campus events with UniConnet.
           </p>
         </div>
       </div>
