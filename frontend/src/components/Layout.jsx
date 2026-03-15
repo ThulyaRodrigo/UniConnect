@@ -1,35 +1,64 @@
-import { useState } from 'react';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { 
-  Home, Calendar, Ticket, Bus, ShieldCheck, 
-  CheckSquare, Users, LogOut, Menu, X, GraduationCap, CalendarDays, MessageSquare, User 
+import {
+  Bus,
+  Calendar,
+  CheckSquare,
+  GraduationCap,
+  Home,
+  LogOut,
+  MapPin,
+  Menu,
+  MessageSquare,
+  ShieldCheck,
+  Ticket,
+  User,
+  Users,
+  X
 } from 'lucide-react';
+import { CalendarDays, MessageCircle } from 'lucide-react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+
+// frontend/src/components/Layout.jsx
+import { useState } from 'react';
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
+  // ------------------------------------------------------------------------
   // LOGICAL MOCK STATE: 
   // Change this role to 'Student', 'SocietyAdmin', or 'SuperAdmin' 
   // to test how the UI physically changes to prevent privilege escalation.
   // ------------------------------------------------------------------------
   const mockUser = {
-    name: 'Kushan Perera',
+    name: 'Thulya Rodrigo',
     email: 'student@sliit.lk',
-    role: 'SocietyAdmin', // Change this to switch roles!
+    role: 'SuperAdmin', // <-- Try changing this!
     societyName: 'FOSS SLIIT' // Only relevant if role is SocietyAdmin
   };
+
+  // EVERYONE sees these (Even Super Admin)
+  const globalLinks = [
+    { name: 'Dashboard', path: '/dashboard', icon: Home },
+    { name: 'Browse Events', path: '/events', icon: Calendar },
+    { name: 'Campus Calendar', path: '/calendar', icon: CalendarDays },
+    { name: 'My Profile', path: '/profile', icon: User },
+  ];
+
+  // ONLY Students and Society Admins see these (SuperAdmin does NOT)
+  const studentSpecificLinks = [
+    { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
+    { name: 'Society Q&A', path: '/chat', icon: MessageSquare },
+    { name: 'Give Feedback', path: '/feedback', icon: MessageCircle },
+  ];
 
   // Base navigation that EVERY logged-in user sees
   const studentLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Browse Events', path: '/events', icon: Calendar },
     { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
-    { name: 'Campus Calendar', path: '/calendar', icon: CalendarDays },
-    { name: 'Society Q&A', path: '/chat', icon: MessageSquare },
-    { name: 'My Profile & Settings', path: '/profile', icon: User },
-    { name: 'Give System Feedback', path: '/feedback', icon: MessageSquare }
+    { name: 'My Profile & Settings', path: '/profile', icon: Users },
+    { name: 'Give System Feedback', path: '/feedback', icon: MessageSquare },
   ];
 
   // Specific navigation appended ONLY if user is a SocietyAdmin
@@ -43,7 +72,7 @@ export default function Layout() {
   const superAdminLinks = [
     { name: 'Society Management', path: '/super/societies', icon: Users },
     { name: 'Access Handover', path: '/super/handover', icon: ShieldCheck },
-    { name: 'Master Routes', path: '/super/routes', icon: Bus },
+    { name: 'Master Routes', path: '/super/routes', icon: MapPin },
   ];
 
   const handleLogout = () => {
@@ -78,9 +107,26 @@ export default function Layout() {
           
           {/* Standard Student Section */}
           <div>
-            <p className="px-3 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Student Portal</p>
+            <p className="px-3 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">University Portal</p>
             <ul className="space-y-1">
-              {studentLinks.map((link) => (
+              {globalLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.path}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                      location.pathname === link.path 
+                        ? 'bg-blue-800 text-white font-medium' 
+                        : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'
+                    }`}
+                  >
+                    <link.icon className="h-5 w-5" />
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+
+              {/* Render Student Links ONLY if NOT a SuperAdmin */}
+              {mockUser.role !== 'SuperAdmin' && studentSpecificLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.path}
@@ -123,7 +169,7 @@ export default function Layout() {
               </ul>
             </div>
           )}
-          
+
           {/* Logical Separation: Super Admin Tools */}
           {mockUser.role === 'SuperAdmin' && (
             <div>
