@@ -1,54 +1,51 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
+import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Layout from './components/Layout';
 
+// Student Pages
 import Dashboard from './pages/student/Dashboard';
-import BrowseEvents from './pages/student/BrowseEvents';
 import MyTickets from './pages/student/MyTickets';
 import BookTicket from './pages/student/BookTicket';
+import BrowseEvents from './pages/student/BrowseEvents';
+import CalendarView from './pages/student/CalendarView'; 
 
+// Society Admin Pages
 import ManageEvents from './pages/admin/ManageEvents';
-import VerifySlips from './pages/admin/VerifySlips';
 import TransportLogistics from './pages/admin/TransportLogistics';
+import VerifySlips from './pages/admin/VerifySlips';
 
+// Super Admin Pages
 import MasterRoutes from './pages/super/MasterRoutes';
-import Societies from './pages/super/Societies';
 import Handover from './pages/super/Handover';
+import Societies from './pages/super/Societies';
+import SocietyDetails from './pages/super/SocietyDetails'; 
 
-import CalendarView from './pages/student/CalendarView';
-import SocietyChat from './pages/shared/SocietyChat';
-import SocietyDetails from './pages/super/SocietyDetails';
-import ProfileSettings from './pages/shared/ProfileSettings';
-import SystemFeedback from './pages/shared/SystemFeedback';
+// Shared Pages
+import ProfileSettings from './pages/shared/ProfileSettings'; 
+import SocietyChat from './pages/shared/SocietyChat'; 
+import SystemFeedback from './pages/shared/SystemFeedback'; 
 
-// Temporary placeholder component to test the layout routing
-const PlaceholderPage = ({ title }) => (
-  <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-    <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
-    <p className="text-gray-500 mt-2">This module is under development.</p>
-  </div>
-);
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes (No Sidebar) */}
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected Routes (Wrapped in the Sidebar Layout) */}
         <Route element={<Layout />}>
-          {/* General Student Routes */}
+          {/* Global / Shared Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<BrowseEvents />} />
-          <Route path="/calendar" element={<CalendarView />} />
           <Route path="/events/book/:eventId" element={<BookTicket />} />
+          <Route path="/calendar" element={<CalendarView />} />
+          <Route path="/profile" element={<ProfileSettings />} />
+          
+          {/* Student/Society Admin Routes (SuperAdmin ignores these) */}
           <Route path="/my-tickets" element={<MyTickets />} />
           <Route path="/chat" element={<SocietyChat />} />
-          <Route path="/super/societies/:id" element={<SocietyDetails />} />  
-          <Route path="/profile" element={<ProfileSettings />} />
           <Route path="/feedback" element={<SystemFeedback />} />
 
           {/* Society Admin Routes */}
@@ -58,11 +55,11 @@ function App() {
 
           {/* Super Admin Routes */}
           <Route path="/super/societies" element={<Societies />} />
-          <Route path="/super/handover" element={<Handover />} />
+          <Route path="/super/societies/:id" element={<SocietyDetails />} /> {/* Dynamic Route Added */}
           <Route path="/super/routes" element={<MasterRoutes />} />
+          <Route path="/super/handover" element={<Handover />} />
         </Route>
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
