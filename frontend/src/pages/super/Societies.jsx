@@ -11,7 +11,8 @@ import {
   IconButton,
   MenuItem,
   TextField,
-  Typography
+  Typography,
+  Divider
 } from '@mui/material';
 import { Plus, Settings, Users } from 'lucide-react';
 import { useState } from 'react';
@@ -45,38 +46,95 @@ export default function Societies() {
         </Button>
       </div>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         {societies.map((soc) => (
-          <Grid item xs={12} sm={6} lg={4} key={soc.id}>
-            <Card elevation={0} sx={{ border: '1px solid #e5e7eb', borderRadius: 3, position: 'relative', overflow: 'visible' }}>
+          <Grid item xs={12} sm={6} md={4} lg={3} key={soc.id} sx={{ display: 'flex' }}>
+            <Card 
+              elevation={0} 
+              sx={{ 
+                border: '1px solid #e5e7eb', 
+                borderRadius: 4, 
+                position: 'relative', 
+                overflow: 'visible',
+                width: '340px',
+                display: 'flex',
+                flexDirection: 'column',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 20px -10px rgba(0, 0, 0, 0.1)',
+                  borderColor: '#FF7100'
+                }
+              }}
+            >
               {/* Category Badge */}
-              <div className="absolute -top-3 -right-3 bg-sliit-blue text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+              <div className="absolute -top-3 -right-2 bg-sliit-blue text-white text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg z-10">
                 {soc.category}
               </div>
-              <CardContent sx={{ p: 4 }}>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-14 w-14 rounded-full bg-blue-50 text-sliit-blue flex items-center justify-center text-xl font-bold border border-blue-100">
+
+              <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <div className="flex items-center gap-4 mb-6 min-w-0">
+                  <div className="h-16 w-16 shrink-0 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 text-sliit-blue flex items-center justify-center text-2xl font-black border border-blue-100 shadow-inner">
                     {soc.name.substring(0, 2).toUpperCase()}
                   </div>
-                  <div>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#111827', lineHeight: 1.2 }}>{soc.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{soc.id}</Typography>
+                  <div className="min-w-0 flex-1">
+                    <Typography 
+                      variant="h6" 
+                      fontWeight="800" 
+                      sx={{ 
+                        color: '#111827', 
+                        lineHeight: 1.2, 
+                        mb: 0.5,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}
+                    >
+                      {soc.name}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, letterSpacing: 0.5 }}>
+                      {soc.id}
+                    </Typography>
                   </div>
                 </div>
                 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, p: 2, backgroundColor: '#f8fafc', borderRadius: 2 }}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h6" fontWeight="bold" color="primary">{soc.eventsHosted}</Typography>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">Total Events</Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 4, p: 2.5, backgroundColor: '#f8fafc', borderRadius: 3, border: '1px solid #f1f5f9' }}>
+                  <Box sx={{ flex: 1, textAlign: 'center' }}>
+                    <Typography variant="h5" fontWeight="800" color="primary" sx={{ mb: 0.5 }}>{soc.eventsHosted}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 0.5 }}>Events</Typography>
                   </Box>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#FF7100' }}>{soc.activeAdmins}</Typography>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">Board Members</Typography>
+                  <Divider orientation="vertical" flexItem sx={{ opacity: 0.5 }} />
+                  <Box sx={{ flex: 1, textAlign: 'center' }}>
+                    <Typography variant="h5" fontWeight="800" sx={{ color: '#FF7100', mb: 0.5 }}>{soc.activeAdmins}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: 0.5 }}>Admin Board</Typography>
                   </Box>
                 </Box>
-                <Button component={Link} to={`/super/societies/${soc.id}`} fullWidth variant="outlined" startIcon={<Settings size={16} />} sx={{ color: '#053668', borderColor: '#e5e7eb', textTransform: 'none', borderRadius: 2 }}>
-                  Manage Details
-                </Button>
+
+                <div className="mt-auto">
+                  <Button 
+                    component={Link} 
+                    to={`/super/societies/${soc.id}`} 
+                    fullWidth 
+                    variant="outlined" 
+                    startIcon={<Settings size={18} />} 
+                    sx={{ 
+                      color: '#053668', 
+                      borderColor: '#e2e8f0', 
+                      textTransform: 'none', 
+                      borderRadius: 3,
+                      fontWeight: 700,
+                      py: 1.5,
+                      '&:hover': {
+                        backgroundColor: '#f8fafc',
+                        borderColor: '#053668'
+                      }
+                    }}
+                  >
+                    Manage Details
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </Grid>
