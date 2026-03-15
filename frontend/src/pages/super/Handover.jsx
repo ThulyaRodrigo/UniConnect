@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { 
   Paper, Typography, Box, Button, TextField, MenuItem, 
-  List, ListItem, ListItemAvatar, ListItemText, Avatar, Divider, Chip
+  List, ListItem, ListItemAvatar, ListItemText, Avatar, Divider,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow 
 } from '@mui/material';
-import { ArrowRightLeft, UserMinus, UserPlus, Search } from 'lucide-react';
-
+import { UserMinus, UserPlus, Search, History } from 'lucide-react';
 export default function Handover() {
   const [selectedSociety, setSelectedSociety] = useState('SOC-01');
 
@@ -12,6 +12,12 @@ export default function Handover() {
   const currentBoard = [
     { id: 'IT21001122', name: 'Kasun Bandara', role: 'President', email: 'kasun.b@sliit.lk' },
     { id: 'IT21003344', name: 'Tharushi Perera', role: 'Secretary', email: 'tharushi.p@sliit.lk' },
+  ];
+
+  // New Mock Data: The Audit Trail
+  const alumniHistory = [
+    { name: 'Saman Kumara', role: 'Former President', demotedDate: '2025-01-15', demotedBy: 'SuperAdmin' },
+    { name: 'Nethmi Silva', role: 'Former Secretary', demotedDate: '2025-01-15', demotedBy: 'SuperAdmin' },
   ];
 
   return (
@@ -113,6 +119,40 @@ export default function Handover() {
         </Paper>
 
       </div>
+      <Paper elevation={0} sx={{ mt: 6, border: '1px solid #e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+        <Box sx={{ p: 3, backgroundColor: '#f8fafc', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 2 }}>
+          <div className="p-2 bg-gray-200 rounded-lg"><History size={20} className="text-gray-700" /></div>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: '#1f2937' }}>Society Admin Alumni (Audit Trail)</Typography>
+            <Typography variant="body2" color="text.secondary">Permanent record of students who previously held admin privileges.</Typography>
+          </Box>
+        </Box>
+        
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold' }}>Student Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Previous Role</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Date Demoted</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Action Taken By</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {alumniHistory.map((row, index) => (
+                <TableRow key={index} hover>
+                  <TableCell fontWeight="medium">{row.name}</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-md">{row.role}</span>
+                  </TableCell>
+                  <TableCell>{row.demotedDate}</TableCell>
+                  <TableCell>{row.demotedBy}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      </Paper>
     </div>
   );
 }

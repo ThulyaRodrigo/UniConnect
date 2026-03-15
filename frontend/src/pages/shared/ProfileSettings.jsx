@@ -66,7 +66,7 @@ export default function ProfileSettings() {
           <p className="text-sm text-gray-500 mb-6">These details will be displayed to students during the manual ticket booking process.</p>
           
           <div className="space-y-4">
-            {bankAccounts.map((acc, index) => (
+            {bankAccounts.map((acc) => (
               <div key={acc.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="md:col-span-4">
                   <label className="text-xs font-bold text-gray-500 uppercase">Bank Name</label>

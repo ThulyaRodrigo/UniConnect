@@ -53,13 +53,13 @@ export default function Layout() {
   ];
 
   // Base navigation that EVERY logged-in user sees
-  const studentLinks = [
-    { name: 'Dashboard', path: '/dashboard', icon: Home },
-    { name: 'Browse Events', path: '/events', icon: Calendar },
-    { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
-    { name: 'My Profile & Settings', path: '/profile', icon: Users },
-    { name: 'Give System Feedback', path: '/feedback', icon: MessageSquare },
-  ];
+  // const studentLinks = [
+  //   { name: 'Dashboard', path: '/dashboard', icon: Home },
+  //   { name: 'Browse Events', path: '/events', icon: Calendar },
+  //   { name: 'My Tickets', path: '/my-tickets', icon: Ticket },
+  //   { name: 'My Profile & Settings', path: '/profile', icon: Users },
+  //   { name: 'Give System Feedback', path: '/feedback', icon: MessageSquare },
+  // ];
 
   // Specific navigation appended ONLY if user is a SocietyAdmin
   const societyAdminLinks = [
