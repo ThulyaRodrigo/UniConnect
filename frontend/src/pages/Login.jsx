@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, GraduationCap } from 'lucide-react';
 import pic1 from '../assets/signup_images/pic1.jpg';
 import pic2 from '../assets/signup_images/pic2.JPG';
@@ -13,6 +13,7 @@ export default function Login() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -28,9 +29,12 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    // Simulations: Wait for 1000ms then navigate to dashboard
     setTimeout(() => {
       console.log('Login attempt:', formData);
       setIsLoading(false);
+      navigate('/dashboard');
     }, 1000);
   };
 
@@ -53,7 +57,7 @@ export default function Login() {
         
         <div className="relative z-10 flex items-center gap-3 drop-shadow-md">
           <GraduationCap className="h-10 w-10 text-sliit-orange" />
-          <h1 className="text-4xl font-bold tracking-tight text-shadow-md">UniConnets</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-shadow-md">UniConnet</h1>
         </div>
         
         <div className="relative z-10 drop-shadow-lg">
@@ -75,7 +79,7 @@ export default function Login() {
         <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="mb-8 text-center lg:text-left">
             <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-            <p className="text-gray-500 mt-2">Sign in to your UniConnets account.</p>
+            <p className="text-gray-500 mt-2">Sign in to your UniConnet account.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

@@ -1,49 +1,70 @@
-// frontend/src/App.jsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
+import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Layout from './components/Layout';
 
+// Student Pages
 import Dashboard from './pages/student/Dashboard';
-import BrowseEvents from './pages/student/BrowseEvents';
 import MyTickets from './pages/student/MyTickets';
 import BookTicket from './pages/student/BookTicket';
+import BrowseEvents from './pages/student/BrowseEvents';
+import CalendarView from './pages/student/CalendarView'; 
 
-// Temporary placeholder component to test the layout routing
-const PlaceholderPage = ({ title }) => (
-  <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-    <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
-    <p className="text-gray-500 mt-2">This module is under development.</p>
-  </div>
-);
+// Society Admin Pages
+import ManageEvents from './pages/admin/ManageEvents';
+import TransportLogistics from './pages/admin/TransportLogistics';
+import VerifySlips from './pages/admin/VerifySlips';
+import SocietySettings from './pages/admin/SocietySettings';
+
+// Super Admin Pages
+import MasterRoutes from './pages/super/MasterRoutes';
+import Handover from './pages/super/Handover';
+import Societies from './pages/super/Societies';
+import SocietyDetails from './pages/super/SocietyDetails'; 
+import PortalSettings from './pages/super/PortalSettings';
+
+// Shared Pages
+import ProfileSettings from './pages/shared/ProfileSettings'; 
+import SocietyChat from './pages/shared/SocietyChat'; 
+import SystemFeedback from './pages/shared/SystemFeedback'; 
+import Profile from './pages/shared/Profile';
+
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes (No Sidebar) */}
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* Protected Routes (Wrapped in the Sidebar Layout) */}
         <Route element={<Layout />}>
-          {/* General Student Routes */}
+          {/* Global / Shared Routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<BrowseEvents />} />
           <Route path="/events/book/:eventId" element={<BookTicket />} />
+          <Route path="/calendar" element={<CalendarView />} />
+          <Route path="/profile" element={<Profile />} />
+          
+          {/* Student/Society Admin Routes (SuperAdmin ignores these) */}
           <Route path="/my-tickets" element={<MyTickets />} />
+          <Route path="/chat" element={<SocietyChat />} />
+          <Route path="/feedback" element={<SystemFeedback />} />
 
           {/* Society Admin Routes */}
-          <Route path="/admin/events" element={<PlaceholderPage title="Manage Society Events" />} />
-          <Route path="/admin/verify-slips" element={<PlaceholderPage title="AI Payment Slip Verification" />} />
-          <Route path="/admin/transport" element={<PlaceholderPage title="Transport & Logistics" />} />
+          <Route path="/admin/events" element={<ManageEvents />} />
+          <Route path="/admin/verify-slips" element={<VerifySlips />} />
+          <Route path="/admin/transport" element={<TransportLogistics />} />
+          <Route path="/admin/society-settings" element={<SocietySettings />} />
 
           {/* Super Admin Routes */}
-          <Route path="/super/societies" element={<PlaceholderPage title="Society Management" />} />
-          <Route path="/super/handover" element={<PlaceholderPage title="Access Handover Panel" />} />
+          <Route path="/super/societies" element={<Societies />} />
+          <Route path="/super/societies/:id" element={<SocietyDetails />} /> {/* Dynamic Route Added */}
+          <Route path="/super/routes" element={<MasterRoutes />} />
+          <Route path="/super/handover" element={<Handover />} />
+          <Route path="/super/portal-settings" element={<PortalSettings />} />
         </Route>
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

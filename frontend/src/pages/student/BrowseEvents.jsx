@@ -88,14 +88,14 @@ export default function BrowseEvents() {
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map(event => (
-            <div key={event.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
+            <div key={event.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow duration-300 group flex flex-col h-full">
               <div className="h-48 overflow-hidden relative">
                 <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-sm font-bold text-sliit-blue">
                   {event.price}
                 </div>
               </div>
-              <div className="p-5">
+              <div className="p-5 flex-1 flex flex-col">
                 <p className="text-xs font-semibold text-sliit-orange uppercase tracking-wider mb-2">{event.society}</p>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{event.title}</h3>
                 
@@ -108,12 +108,14 @@ export default function BrowseEvents() {
                   </div>
                 </div>
                 
-                <Link 
+                <div className="mt-auto">
+                  <Link 
                     to={`/events/book/${event.id}`} 
                     className="w-full block text-center py-2.5 bg-gray-50 hover:bg-sliit-blue hover:text-white text-sliit-blue border border-gray-200 rounded-xl font-semibold transition-colors"
-                >
+                  >
                     View & Book
-                </Link>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
