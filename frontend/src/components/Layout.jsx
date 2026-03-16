@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
   CheckSquare, Users, LogOut, Menu, GraduationCap,
-  CalendarDays, MessageSquare, MessageCircle, User, ChevronDown, Settings
+  CalendarDays, MessageSquare, MessageCircle, User, ChevronDown, Settings, Building
 } from 'lucide-react';
 
 export default function Layout() {
@@ -48,6 +48,7 @@ export default function Layout() {
     { name: 'Manage Events', path: '/admin/events', icon: Calendar },
     { name: 'Verify Payments (AI)', path: '/admin/verify-slips', icon: CheckSquare },
     { name: 'Transport Logistics', path: '/admin/transport', icon: Bus },
+    { name: 'Society Settings', path: '/admin/society-settings', icon: Building },
   ];
 
   const superAdminLinks = [

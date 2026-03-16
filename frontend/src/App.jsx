@@ -15,6 +15,7 @@ import CalendarView from './pages/student/CalendarView';
 import ManageEvents from './pages/admin/ManageEvents';
 import TransportLogistics from './pages/admin/TransportLogistics';
 import VerifySlips from './pages/admin/VerifySlips';
+import SocietySettings from './pages/admin/SocietySettings';
 
 // Super Admin Pages
 import MasterRoutes from './pages/super/MasterRoutes';
@@ -27,6 +28,7 @@ import PortalSettings from './pages/super/PortalSettings';
 import ProfileSettings from './pages/shared/ProfileSettings'; 
 import SocietyChat from './pages/shared/SocietyChat'; 
 import SystemFeedback from './pages/shared/SystemFeedback'; 
+import Profile from './pages/shared/Profile';
 
 
 function App() {
@@ -42,7 +44,7 @@ function App() {
           <Route path="/events" element={<BrowseEvents />} />
           <Route path="/events/book/:eventId" element={<BookTicket />} />
           <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/profile" element={<ProfileSettings />} />
+          <Route path="/profile" element={<Profile />} />
           
           {/* Student/Society Admin Routes (SuperAdmin ignores these) */}
           <Route path="/my-tickets" element={<MyTickets />} />
@@ -53,6 +55,7 @@ function App() {
           <Route path="/admin/events" element={<ManageEvents />} />
           <Route path="/admin/verify-slips" element={<VerifySlips />} />
           <Route path="/admin/transport" element={<TransportLogistics />} />
+          <Route path="/admin/society-settings" element={<SocietySettings />} />
 
           {/* Super Admin Routes */}
           <Route path="/super/societies" element={<Societies />} />
