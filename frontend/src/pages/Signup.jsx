@@ -10,11 +10,15 @@ const bgImages = [pic1, pic2, pic3, pic4];
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [error, setError] = useState('');
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: '' 
   });
 
   useEffect(() => {
@@ -29,9 +33,16 @@ export default function Signup() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Secure Registration data:', formData);
-  };
+  e.preventDefault();
+  setError('');
+
+  if (formData.password !== formData.confirmPassword) {
+    setError('Passwords do not match. Please try again.');
+    return;
+  }
+
+  console.log('Secure Registration data:', formData);
+};
 
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
@@ -100,6 +111,37 @@ export default function Signup() {
                 </button>
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  required
+                  className="pl-10 pr-12 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
+                  placeholder="••••••••"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sliit-blue"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message Display */}
+            {error && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
