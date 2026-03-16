@@ -4,7 +4,7 @@ import {
   Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, 
   TextField, MenuItem, Box, IconButton, Typography, 
 } from '@mui/material';
-import { Plus, Edit2, Trash2, Calendar as CalendarIcon, FileSpreadsheet } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar as CalendarIcon, FileSpreadsheet, Image as ImageIcon } from 'lucide-react';
 
 export default function ManageEvents() {
   const [open, setOpen] = useState(false);
@@ -103,6 +103,20 @@ export default function ManageEvents() {
           </Box>
 
           <TextField label="Event Description" multiline rows={4} fullWidth size="small" />
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: '1px dashed #cbd5e1', borderRadius: 2, bgcolor: '#f8fafc' }}>
+            <div className="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center text-sliit-blue">
+              <ImageIcon size={24} />
+            </div>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="body2" fontWeight="bold">Event Poster Image</Typography>
+              <Typography variant="caption" color="text.secondary">PNG, JPG up to 5MB</Typography>
+            </Box>
+            <Button component="label" variant="outlined" size="small" sx={{ textTransform: 'none', borderRadius: 2 }}>
+              Upload File
+              <input type="file" hidden accept="image/*" />
+            </Button>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={handleClose} color="inherit" sx={{ textTransform: 'none' }}>Cancel</Button>
