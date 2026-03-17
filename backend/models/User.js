@@ -1,20 +1,35 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    name: { 
+        type: String, 
+        required: [true, 'Please add a name'] 
+    },
+    email: { 
+        type: String, 
+        required: [true, 'Please add an email'], 
+        unique: true,
+        match: [
+            /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+            'Please add a valid email'
+        ]
+    },
+    password: { 
+        type: String, 
+        required: [true, 'Please add a password'],
+        minlength: 6,
+        select: false // Automatically hide password in queries unless explicitly requested
+    },
     role: { 
         type: String, 
-        enum: ['SuperAdmin', 'SocietyAdmin', 'Student'], 
+        enum: ['Student', 'SocietyAdmin', 'SuperAdmin'], 
         default: 'Student' 
     },
-    // If the user is a Society Admin, this links them to their society
-    societyId: { 
+    // Array of societies this user has admin rights for (Context Switcher logic)
+    adminSocieties: [{ 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Society', 
-        default: null 
-    }
+        ref: 'Society' 
+    }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, GraduationCap } from 'lucide-react';
+import axios from 'axios';
 import pic1 from '../assets/signup_images/pic1.jpg';
 import pic2 from '../assets/signup_images/pic2.JPG';
 import pic3 from '../assets/signup_images/pic3.JPG';
@@ -13,6 +14,8 @@ export default function Login() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,13 +32,29 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulations: Wait for 1000ms then navigate to dashboard
-    setTimeout(() => {
-      console.log('Login attempt:', formData);
+    try {
+      // Call the Express backend login endpoint
+      const response = await axios.post('http://localhost:5001/api/auth/login', formData);
+
+      // Save credentials for the Layout & Context Switcher to use
+      localStorage.setItem('userToken', response.data.token);
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+
       setIsLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+      
+      if (response.data.role === 'SuperAdmin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+
+    } catch (err) {
+      setIsLoading(false);
+      // Catch "Invalid Credentials" or other backend errors
+      setError(err.response?.data?.message || 'Failed to sign in. Please try again.');
+    }
   };
 
   return (
@@ -81,6 +100,13 @@ export default function Login() {
             <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
             <p className="text-gray-500 mt-2">Sign in to your UniConnet account.</p>
           </div>
+
+          {/* Display Backend Errors */}
+          {error && (
+            <div className="mb-6 bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

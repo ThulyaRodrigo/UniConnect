@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Mail, Lock, Eye, EyeOff, GraduationCap, CheckCircle, ArrowRight } from 'lucide-react';
+import axios from 'axios';
 import pic1 from '../assets/signup_images/pic1.jpg';
 import pic2 from '../assets/signup_images/pic2.JPG';
 import pic3 from '../assets/signup_images/pic3.JPG';
@@ -12,7 +13,11 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -32,26 +37,92 @@ export default function Signup() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
-  setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-  if (formData.password !== formData.confirmPassword) {
-    setError('Passwords do not match. Please try again.');
-    return;
-  }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match. Please try again.');
+      return;
+    }
 
-  console.log('Secure Registration data:', formData);
-};
+    setIsLoading(true);
+
+    try {
+      // Setup the payload
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      };
+
+      // Make the actual API call to our Express backend
+      const response = await axios.post('http://localhost:5001/api/auth/register', payload);
+
+      // If successful, save the token and user data to localStorage
+      localStorage.setItem('userToken', response.data.token);
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+
+      setIsLoading(false);
+      setIsSuccess(true); // Show success screen instead of direct redirect
+
+    } catch (err) {
+      setIsLoading(false);
+      // Safely extract the error message from the backend
+      setError(err.response?.data?.message || 'Something went wrong during registration.');
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
-        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="w-full max-w-md">
+
+          {/* ─── SUCCESS SCREEN ─── */}
+          {isSuccess && (
+            <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center">
+              <div className="flex items-center justify-center mb-6">
+                <div className="h-24 w-24 rounded-full bg-green-50 border-4 border-green-100 flex items-center justify-center">
+                  <CheckCircle className="h-12 w-12 text-green-500" strokeWidth={1.5} />
+                </div>
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 mb-2">
+                Welcome aboard, {formData.name.split(' ')[0]}! 🎉
+              </h2>
+              <p className="text-gray-500 mb-8">
+                Your UniConnet account has been created successfully. You're all set to explore campus events, societies, and more.
+              </p>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 text-left">
+                <p className="text-xs font-bold text-sliit-blue uppercase tracking-wider mb-1">Signed in as</p>
+                <p className="text-sm font-semibold text-gray-800">{formData.name}</p>
+                <p className="text-xs text-gray-500">{formData.email}</p>
+              </div>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-sliit-orange hover:bg-[#e66600] text-white font-bold rounded-xl transition-all shadow-md shadow-orange-500/30"
+              >
+                Let's Go <ArrowRight className="h-5 w-5" />
+              </button>
+              <Link to="/" className="block mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                Back to Sign In
+              </Link>
+            </div>
+          )}
+
+          {/* ─── SIGNUP FORM ─── */}
+          {!isSuccess && (
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="mb-8 text-center lg:text-left">
             <h2 className="text-3xl font-bold text-gray-900">Join UniConnet</h2>
             <p className="text-gray-500 mt-2">Create your official campus account.</p>
           </div>
+
+          {/* Display Backend Errors */}
+          {error && (
+            <div className="mb-6 bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -65,7 +136,7 @@ export default function Signup() {
                   name="name"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
-                  placeholder="John Doe"
+                  placeholder="Kushan Perera"
                   onChange={handleChange}
                 />
               </div>
@@ -82,7 +153,7 @@ export default function Signup() {
                   name="email"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
-                  placeholder="student@sliit.lk"
+                  placeholder="itxxxxxxxx@my.sliit.lk"
                   onChange={handleChange}
                 />
               </div>
@@ -107,7 +178,7 @@ export default function Signup() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sliit-blue"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -131,23 +202,18 @@ export default function Signup() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sliit-blue"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Error Message Display */}
-            {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
-                {error}
-              </div>
-            )}
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-4"
+              disabled={isLoading}
+              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
@@ -157,6 +223,9 @@ export default function Signup() {
               Sign in instead
             </Link>
           </div>
+          </div>
+          )}   {/* end !isSuccess */}
+
         </div>
       </div>
 
