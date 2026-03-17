@@ -1,41 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
   CheckSquare, Users, LogOut, Menu, GraduationCap,
-  CalendarDays, MessageSquare, MessageCircle, User, ChevronDown, Settings, Building
+  CalendarDays, MessageSquare, MessageCircle, User as UserIcon, ChevronDown
 } from 'lucide-react';
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Lazy Authentication State
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      return stored ? JSON.parse(stored) : null;
+    } catch (err) {
+      console.error("Auth state recovery failed:", err);
+      return null;
+    }
+  });
+
+  const [activeWorkspace, setActiveWorkspace] = useState(() => {
+    try {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.role === 'SocietyAdmin' && parsed.adminSocieties?.length > 0) {
+          return parsed.adminSocieties[0];
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ------------------------------------------------------------------------
-  // UPDATED LOGIC: User now has an array of managed societies
-  // Change this role to 'Student', 'SocietyAdmin', or 'SuperAdmin' 
-  // to test how the UI physically changes to prevent privilege escalation.
-  // ------------------------------------------------------------------------
-  const mockUser = {
-    name: 'Thulya Rodrigo',
-    email: 'student@sliit.lk',
-    role: 'SocietyAdmin', 
-    adminSocieties: [
-      { id: 'SOC-01', name: 'FOSS SLIIT' },
-      { id: 'SOC-02', name: 'AI Society' }
-    ]
-  };
+  // Route Protection
+  useEffect(() => {
+    if (!user || !localStorage.getItem('userToken')) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
-  // State to track which society workspace is currently active
-  const [activeWorkspace, setActiveWorkspace] = useState(
-    mockUser.adminSocieties ? mockUser.adminSocieties[0] : null
-  );
+  const handleLogout = () => {
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('userToken');
+    setUser(null);
+    navigate('/');
+  };
 
   const globalLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
     { name: 'Browse Events', path: '/events', icon: Calendar },
     { name: 'Campus Calendar', path: '/calendar', icon: CalendarDays },
-    { name: 'My Profile', path: '/profile', icon: User },
+    { name: 'My Profile', path: '/profile', icon: UserIcon },
   ];
 
   const studentSpecificLinks = [
@@ -48,25 +69,28 @@ export default function Layout() {
     { name: 'Manage Events', path: '/admin/events', icon: Calendar },
     { name: 'Verify Payments (AI)', path: '/admin/verify-slips', icon: CheckSquare },
     { name: 'Transport Logistics', path: '/admin/transport', icon: Bus },
-    { name: 'Society Settings', path: '/admin/society-settings', icon: Building },
+    { name: 'Society Settings', path: '/admin/society-settings', icon: Users },
   ];
 
   const superAdminLinks = [
     { name: 'Society Management', path: '/super/societies', icon: Users },
     { name: 'Master Routes', path: '/super/routes', icon: Bus },
     { name: 'Access Handover', path: '/super/handover', icon: ShieldCheck },
-    { name: 'Portal Settings', path: '/super/portal-settings', icon: Settings },
+    { name: 'Portal Settings', path: '/super/portal-settings', icon: CheckSquare },
   ];
 
-  const handleLogout = () => navigate('/');
+  // Prevent rendering the layout until the user state is loaded to avoid errors
+  if (!user) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading Secure Portal...</div>;
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
       
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>
       )}
 
+      {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-sliit-blue text-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-center h-20 border-b border-blue-800 shrink-0">
           <GraduationCap className="h-8 w-8 text-sliit-orange mr-3" />
@@ -81,14 +105,14 @@ export default function Layout() {
             <ul className="space-y-1">
               {globalLinks.map((link) => (
                 <li key={link.name}>
-                  <Link to={link.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'}`}>
+                  <Link to={link.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'}`}>
                     <link.icon className="h-5 w-5" /> {link.name}
                   </Link>
                 </li>
               ))}
-              {mockUser.role !== 'SuperAdmin' && studentSpecificLinks.map((link) => (
+              {user.role !== 'SuperAdmin' && studentSpecificLinks.map((link) => (
                 <li key={link.name}>
-                  <Link to={link.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'}`}>
+                  <Link to={link.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white'}`}>
                     <link.icon className="h-5 w-5" /> {link.name}
                   </Link>
                 </li>
@@ -97,24 +121,24 @@ export default function Layout() {
           </div>
 
           {/* Society Admin Section */}
-          {mockUser.role === 'SocietyAdmin' && activeWorkspace && (
+          {user.role === 'SocietyAdmin' && activeWorkspace && (
             <div>
               <div className="px-3 mb-3">
                 <p className="text-xs font-semibold text-sliit-orange uppercase tracking-wider mb-2">Administration</p>
                 
-                {/* WORKSPACE SWITCHER */}
-                {mockUser.adminSocieties.length > 1 ? (
+                {/* DYNAMIC WORKSPACE SWITCHER */}
+                {user.adminSocieties.length > 1 ? (
                   <div className="relative group">
                     <select 
-                      value={activeWorkspace.id}
+                      value={activeWorkspace._id} // MongoDB uses _id
                       onChange={(e) => {
-                        const newSociety = mockUser.adminSocieties.find(s => s.id === e.target.value);
+                        const newSociety = user.adminSocieties.find(s => s._id === e.target.value);
                         setActiveWorkspace(newSociety);
                       }}
                       className="w-full appearance-none bg-blue-900 border border-blue-700 text-white text-sm font-bold rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sliit-orange cursor-pointer truncate pr-8"
                     >
-                      {mockUser.adminSocieties.map(soc => (
-                        <option key={soc.id} value={soc.id}>{soc.name} Workspace</option>
+                      {user.adminSocieties.map(soc => (
+                        <option key={soc._id} value={soc._id}>{soc.name} Workspace</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-blue-300 pointer-events-none" />
@@ -129,7 +153,7 @@ export default function Layout() {
               <ul className="space-y-1">
                 {societyAdminLinks.map((link) => (
                   <li key={link.name}>
-                    <Link to={link.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium border-l-4 border-sliit-orange' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white border-l-4 border-transparent'}`}>
+                    <Link to={link.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium border-l-4 border-sliit-orange' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white border-l-4 border-transparent'}`}>
                       <link.icon className="h-5 w-5" /> {link.name}
                     </Link>
                   </li>
@@ -139,13 +163,13 @@ export default function Layout() {
           )}
 
           {/* Super Admin Section */}
-          {mockUser.role === 'SuperAdmin' && (
+          {user.role === 'SuperAdmin' && (
             <div>
               <p className="px-3 text-xs font-bold text-red-400 uppercase tracking-wider mb-2">System Control</p>
               <ul className="space-y-1">
                 {superAdminLinks.map((link) => (
                   <li key={link.name}>
-                    <Link to={link.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium border-l-4 border-red-500' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white border-l-4 border-transparent'}`}>
+                    <Link to={link.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === link.path ? 'bg-blue-800 text-white font-medium border-l-4 border-red-500' : 'text-blue-100 hover:bg-blue-800/50 hover:text-white border-l-4 border-transparent'}`}>
                       <link.icon className="h-5 w-5" /> {link.name}
                     </Link>
                   </li>
@@ -156,28 +180,33 @@ export default function Layout() {
         </nav>
       </aside>
 
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 z-10">
           <button className="lg:hidden text-gray-500 hover:text-gray-700" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu className="h-6 w-6" />
           </button>
           
-          {/* Top Header Workspace Indicator (Optional visual reinforcement) */}
           <div className="hidden lg:block ml-4">
-            {mockUser.role === 'SocietyAdmin' && (
+            {user.role === 'SocietyAdmin' && activeWorkspace && (
               <span className="bg-orange-50 text-sliit-orange border border-orange-100 px-3 py-1 rounded-full text-xs font-bold">
-                Acting as: {activeWorkspace?.name}
+                Acting as: {activeWorkspace.name}
+              </span>
+            )}
+            {user.role === 'SuperAdmin' && (
+              <span className="bg-red-50 text-red-600 border border-red-100 px-3 py-1 rounded-full text-xs font-bold">
+                System Administrator Privileges Active
               </span>
             )}
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-900">{mockUser.name}</p>
-              <p className="text-xs text-gray-500">{mockUser.role}</p>
+              <p className="text-sm font-bold text-gray-900">{user.name}</p>
+              <p className="text-xs text-gray-500">{user.role}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-yellow-100 text-sliit-blue flex items-center justify-center font-bold border border-yellow-200">
-              {mockUser.name.charAt(0)}
+            <div className="h-10 w-10 rounded-full bg-yellow-100 text-sliit-blue flex items-center justify-center font-bold border border-yellow-200 uppercase">
+              {user.name.charAt(0)}
             </div>
             <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-600 transition-colors ml-2" title="Logout">
               <LogOut className="h-5 w-5" />
@@ -186,6 +215,7 @@ export default function Layout() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-50">
+          {/* We pass the activeWorkspace down to any child routes! */}
           <Outlet context={{ activeWorkspace }} /> 
         </main>
       </div>
