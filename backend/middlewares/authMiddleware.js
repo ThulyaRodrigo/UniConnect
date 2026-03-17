@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes (Check if logged in)
+// Protect routes - Verifies JWT Token
 exports.protect = async (req, res, next) => {
     let token;
 
@@ -27,6 +27,7 @@ exports.protect = async (req, res, next) => {
 };
 
 // Grant access to specific roles (RBAC)
+// Usage: authorize('SuperAdmin', 'SocietyAdmin')
 exports.authorize = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
