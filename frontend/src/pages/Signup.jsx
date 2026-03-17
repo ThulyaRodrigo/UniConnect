@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import axios from 'axios';
 import pic1 from '../assets/signup_images/pic1.jpg';
 import pic2 from '../assets/signup_images/pic2.JPG';
 import pic3 from '../assets/signup_images/pic3.JPG';
@@ -12,7 +13,10 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -32,17 +36,41 @@ export default function Signup() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
-  setError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-  if (formData.password !== formData.confirmPassword) {
-    setError('Passwords do not match. Please try again.');
-    return;
-  }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match. Please try again.');
+      return;
+    }
 
-  console.log('Secure Registration data:', formData);
-};
+    setIsLoading(true);
+
+    try {
+      // Setup the payload
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      };
+
+      // Make the actual API call to our Express backend
+      const response = await axios.post('http://localhost:5001/api/auth/register', payload);
+
+      // If successful, save the token and user data to localStorage
+      localStorage.setItem('userToken', response.data.token);
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+
+      setIsLoading(false);
+      navigate('/dashboard'); // Redirect to the student dashboard
+
+    } catch (err) {
+      setIsLoading(false);
+      // Safely extract the error message from the backend
+      setError(err.response?.data?.message || 'Something went wrong during registration.');
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
@@ -52,6 +80,13 @@ export default function Signup() {
             <h2 className="text-3xl font-bold text-gray-900">Join UniConnet</h2>
             <p className="text-gray-500 mt-2">Create your official campus account.</p>
           </div>
+
+          {/* Display Backend Errors */}
+          {error && (
+            <div className="mb-6 bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -65,7 +100,7 @@ export default function Signup() {
                   name="name"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
-                  placeholder="John Doe"
+                  placeholder="Kushan Perera"
                   onChange={handleChange}
                 />
               </div>
@@ -82,7 +117,7 @@ export default function Signup() {
                   name="email"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
-                  placeholder="student@sliit.lk"
+                  placeholder="itxxxxxxxx@my.sliit.lk"
                   onChange={handleChange}
                 />
               </div>
@@ -145,9 +180,10 @@ export default function Signup() {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-4"
+              disabled={isLoading}
+              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
