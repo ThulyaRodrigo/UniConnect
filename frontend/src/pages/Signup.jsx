@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, GraduationCap, CheckCircle, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 import pic1 from '../assets/signup_images/pic1.jpg';
 import pic2 from '../assets/signup_images/pic2.JPG';
@@ -14,6 +14,7 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ export default function Signup() {
       localStorage.setItem('userInfo', JSON.stringify(response.data));
 
       setIsLoading(false);
-      navigate('/dashboard'); // Redirect to the student dashboard
+      setIsSuccess(true); // Show success screen instead of direct redirect
 
     } catch (err) {
       setIsLoading(false);
@@ -75,7 +76,42 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
-        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <div className="w-full max-w-md">
+
+          {/* ─── SUCCESS SCREEN ─── */}
+          {isSuccess && (
+            <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center">
+              <div className="flex items-center justify-center mb-6">
+                <div className="h-24 w-24 rounded-full bg-green-50 border-4 border-green-100 flex items-center justify-center">
+                  <CheckCircle className="h-12 w-12 text-green-500" strokeWidth={1.5} />
+                </div>
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 mb-2">
+                Welcome aboard, {formData.name.split(' ')[0]}! 🎉
+              </h2>
+              <p className="text-gray-500 mb-8">
+                Your UniConnet account has been created successfully. You're all set to explore campus events, societies, and more.
+              </p>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 text-left">
+                <p className="text-xs font-bold text-sliit-blue uppercase tracking-wider mb-1">Signed in as</p>
+                <p className="text-sm font-semibold text-gray-800">{formData.name}</p>
+                <p className="text-xs text-gray-500">{formData.email}</p>
+              </div>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-sliit-orange hover:bg-[#e66600] text-white font-bold rounded-xl transition-all shadow-md shadow-orange-500/30"
+              >
+                Let's Go <ArrowRight className="h-5 w-5" />
+              </button>
+              <Link to="/" className="block mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                Back to Sign In
+              </Link>
+            </div>
+          )}
+
+          {/* ─── SIGNUP FORM ─── */}
+          {!isSuccess && (
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="mb-8 text-center lg:text-left">
             <h2 className="text-3xl font-bold text-gray-900">Join UniConnet</h2>
             <p className="text-gray-500 mt-2">Create your official campus account.</p>
@@ -142,7 +178,7 @@ export default function Signup() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sliit-blue"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -166,17 +202,11 @@ export default function Signup() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-sliit-blue"
                 >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showConfirmPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Error Message Display */}
-            {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
-                {error}
-              </div>
-            )}
 
             <button
               type="submit"
@@ -193,6 +223,9 @@ export default function Signup() {
               Sign in instead
             </Link>
           </div>
+          </div>
+          )}   {/* end !isSuccess */}
+
         </div>
       </div>
 
