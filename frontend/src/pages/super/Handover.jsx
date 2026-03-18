@@ -4,7 +4,8 @@ import axios from 'axios';
 import { 
   Paper, Typography, Box, Button, TextField, MenuItem, 
   List, ListItem, ListItemAvatar, ListItemText, Avatar, Divider,
-  Table, TableBody, TableCell, TableHead, TableRow, Snackbar, Alert, CircularProgress
+  Table, TableBody, TableCell, TableHead, TableRow, Snackbar, Alert, CircularProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { UserMinus, UserPlus, Search, History } from 'lucide-react';
 
@@ -22,7 +23,12 @@ export default function Handover() {
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // 1. Fetch Societies for Dropdown on Mount
+  const [promotionDialog, setPromotionDialog] = useState({ open: false, user: null });
+  const [selectedPosition, setSelectedPosition] = useState('');
+  const boardPositions = ['President', 'Vice President', 'Secretary', 'Treasurer', 'Editor'];
+  const [demoteDialog, setDemoteDialog] = useState({ open: false, user: null }); 
+
+  // Fetch Societies for Dropdown on Mount
   useEffect(() => {
     const fetchSocieties = async () => {
       try {
@@ -37,7 +43,7 @@ export default function Handover() {
     fetchSocieties();
   }, []);
 
-  // 2. Fetch Board and History when Society changes
+  // Fetch Board and History when Society changes
   useEffect(() => {
     if (!selectedSociety) return;
     fetchBoardAndHistory();
@@ -62,7 +68,7 @@ export default function Handover() {
     }
   };
 
-  // 3. Search Students
+  // Search Students
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
@@ -78,29 +84,49 @@ export default function Handover() {
     }
   };
 
-  // 4. Promote Action
-  const handlePromote = async (userId) => {
+  // Promote Action
+  const handlePromote = async () => {
+    if (!selectedPosition) {
+        setSnackbar({ open: true, message: 'Please select a position.', severity: 'warning' });
+        return;
+    }
+
     const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
     try {
-      await axios.post(`http://localhost:5001/api/handover/society/${selectedSociety}/promote`, { userId }, config);
-      setSnackbar({ open: true, message: 'Student promoted successfully!', severity: 'success' });
-      setSearchResults(searchResults.filter(u => u._id !== userId));
+      await axios.post(
+          `http://localhost:5001/api/handover/society/${selectedSociety}/promote`, 
+          { userId: promotionDialog.user._id, position: selectedPosition }, 
+          config
+      );
+      setSnackbar({ open: true, message: `Student promoted to ${selectedPosition} successfully!`, severity: 'success' });
+      setSearchResults(searchResults.filter(u => u._id !== promotionDialog.user._id));
+      setPromotionDialog({ open: false, user: null });
+      setSelectedPosition('');
       fetchBoardAndHistory(); // Refresh lists
     } catch (err) {
       setSnackbar({ open: true, message: err.response?.data?.message || 'Promotion failed', severity: 'error' });
+      setPromotionDialog({ open: false, user: null });
     }
   };
 
-  // 5. Demote Action
-  const handleDemote = async (userId) => {
+  // Demote Action
+  const handleDemote = async () => {
+    if (!demoteDialog.user) return;
+
     const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
     try {
-      await axios.post(`http://localhost:5001/api/handover/society/${selectedSociety}/demote`, { userId }, config);
+      await axios.post(
+        `http://localhost:5001/api/handover/society/${selectedSociety}/demote`, 
+        { userId: demoteDialog.user._id }, 
+        config
+      );
       setSnackbar({ open: true, message: 'Access revoked successfully!', severity: 'success' });
+      setDemoteDialog({ open: false, user: null }); // Close dialog on success
       fetchBoardAndHistory(); // Refresh lists
     } catch (err) {
       console.log(err);
       setSnackbar({ open: true, message: 'Demotion failed', severity: 'error' });
+      setDemoteDialog({ open: false, user: null }); // Close dialog on error
     }
   };
 
@@ -144,23 +170,23 @@ export default function Handover() {
               </Box>
               <List sx={{ p: 0 }}>
                 {currentBoard.map((member, index) => (
-                  <div key={member._id}>
+                  <div key={member.user._id}>
                     <ListItem sx={{ py: 2 }}>
                       <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: '#fee2e2', color: '#dc2626', fontWeight: 'bold' }}>{member.name.charAt(0)}</Avatar>
+                        <Avatar sx={{ bgcolor: '#fee2e2', color: '#dc2626', fontWeight: 'bold' }}>{member.user.name.charAt(0)}</Avatar>
                       </ListItemAvatar>
                       <ListItemText 
-                        primary={<Typography fontWeight="bold" color="text.primary">{member.name}</Typography>}
-                        secondary={member.email}
+                        primary={<Typography fontWeight="bold" color="text.primary">{member.user.name} <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded ml-2">{member.position}</span></Typography>}
+                        secondary={member.user.email}
                       />
                       <Button 
                         size="small" 
                         variant="outlined" 
-                        color="error"
-                        onClick={() => handleDemote(member._id)}
+                        color="error" 
+                        onClick={() => setDemoteDialog({ open: true, user: member.user })} // CHANGED THIS LINE
                         sx={{ textTransform: 'none', borderRadius: 2 }}
                       >
-                        Revoke Access
+                        Revoke
                       </Button>
                     </ListItem>
                     {index !== currentBoard.length - 1 && <Divider />}
@@ -205,10 +231,8 @@ export default function Handover() {
                         <Typography variant="body2" color="text.secondary">{user.email} • Currently: {user.role}</Typography>
                       </Box>
                       <Button 
-                        size="small" 
-                        variant="contained" 
-                        color="success"
-                        onClick={() => handlePromote(user._id)}
+                        size="small" variant="contained" color="success"
+                        onClick={() => setPromotionDialog({ open: true, user: user })}
                         sx={{ textTransform: 'none', borderRadius: 2, boxShadow: 'none' }}
                       >
                         Promote
@@ -270,6 +294,44 @@ export default function Handover() {
           </Paper>
         </>
       )}
+
+      <Dialog open={promotionDialog.open} onClose={() => setPromotionDialog({ open: false, user: null })} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Assign Board Position</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body2" mb={2}>
+            Select the official board position for <strong>{promotionDialog.user?.name}</strong>.
+          </Typography>
+          <TextField select fullWidth size="small" label="Official Position" value={selectedPosition} onChange={(e) => setSelectedPosition(e.target.value)}>
+            {boardPositions.map(pos => <MenuItem key={pos} value={pos}>{pos}</MenuItem>)}
+          </TextField>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setPromotionDialog({ open: false, user: null })} color="inherit">Cancel</Button>
+          <Button onClick={handlePromote} variant="contained" color="success">Confirm Promotion</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={demoteDialog.open} onClose={() => setDemoteDialog({ open: false, user: null })} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#dc2626', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <UserMinus size={20} /> Confirm Revoke Access
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="body1">
+            Are you sure you want to revoke board privileges for <strong>{demoteDialog.user?.name}</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2, p: 2, bgcolor: '#fef2f2', borderRadius: 2, border: '1px solid #fecaca' }}>
+            This will remove them from the executive board. If they manage no other societies, they will be fully demoted to a standard Student role. This action will be permanently recorded in the audit trail.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDemoteDialog({ open: false, user: null })} color="inherit" sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button onClick={handleDemote} variant="contained" color="error" sx={{ textTransform: 'none' }}>
+            Yes, Revoke Access
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity={snackbar.severity} sx={{ width: '100%', borderRadius: 2 }}>
