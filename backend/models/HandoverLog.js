@@ -13,7 +13,6 @@ const handoverLogSchema = new mongoose.Schema({
     },
     action: { 
         type: String, 
-        enum: ['Promoted to Admin', 'Demoted to Student'], 
         required: true 
     },
     performedBy: { 

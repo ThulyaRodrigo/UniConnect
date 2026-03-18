@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const HandoverLog = require('../models/HandoverLog');
+const Society = require('../models/Society');
 
 // @desc    Search students to promote
 // @route   GET /api/handover/search?q=email
@@ -26,8 +27,10 @@ exports.searchStudents = async (req, res) => {
 // @access  Private/SuperAdmin
 exports.getSocietyBoard = async (req, res) => {
     try {
-        const board = await User.find({ adminSocieties: req.params.id }).select('name email role');
-        res.status(200).json({ success: true, data: board });
+        const society = await Society.findById(req.params.id)
+            .populate('board.user', 'name email role'); // Fetch user details for the board
+        
+        res.status(200).json({ success: true, data: society.board });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -38,30 +41,52 @@ exports.getSocietyBoard = async (req, res) => {
 // @access  Private/SuperAdmin
 exports.promoteAdmin = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { userId, position } = req.body; // Now expecting 'position'
         const societyId = req.params.id;
 
-        const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        // Prevent duplicate assignment
-        if (user.adminSocieties.includes(societyId)) {
-            return res.status(400).json({ message: 'User is already an admin for this society' });
+        if (!position) {
+            return res.status(400).json({ message: 'Please specify the board position.' });
         }
 
-        user.adminSocieties.push(societyId);
-        user.role = 'SocietyAdmin'; // Elevate privileges
+        const user = await User.findById(userId);
+        const society = await Society.findById(societyId);
+
+        if (!user || !society) return res.status(404).json({ message: 'User or Society not found' });
+
+        // UNIQUE POSITION CONSTRAINT CHECK
+        const isPositionTaken = society.board.some(member => member.position === position);
+        if (isPositionTaken) {
+            return res.status(400).json({ 
+                message: `This society already has a ${position}. Please revoke the current ${position}'s access first.` 
+            });
+        }
+
+        // Prevent user from holding multiple roles in the SAME society
+        const isAlreadyOnBoard = society.board.some(member => member.user.toString() === userId.toString());
+        if (isAlreadyOnBoard) {
+            return res.status(400).json({ message: 'This student is already on the board for this society.' });
+        }
+
+        // Update the Society's Board
+        society.board.push({ user: userId, position: position });
+        await society.save();
+
+        // Update the User's Privileges
+        if (!user.adminSocieties.includes(societyId)) {
+            user.adminSocieties.push(societyId);
+        }
+        user.role = 'SocietyAdmin';
         await user.save();
 
         // Log the audit trail
         await HandoverLog.create({
             society: societyId,
             user: userId,
-            action: 'Promoted to Admin',
-            performedBy: req.user._id // The SuperAdmin who did this
+            action: `Promoted to ${position}`, // Log the specific role!
+            performedBy: req.user._id 
         });
 
-        res.status(200).json({ success: true, message: 'User promoted successfully' });
+        res.status(200).json({ success: true, message: `Student successfully promoted to ${position}!` });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -76,26 +101,34 @@ exports.demoteAdmin = async (req, res) => {
         const societyId = req.params.id;
 
         const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const society = await Society.findById(societyId);
 
-        // Remove society from array
-        user.adminSocieties = user.adminSocieties.filter(id => id.toString() !== societyId.toString());
-        
-        // If they manage NO other societies, demote them completely to Student
-        if (user.adminSocieties.length === 0) {
-            user.role = 'Student';
+        // Find what position they held for the log
+        const boardMember = society.board.find(member => member.user.toString() === userId.toString());
+        const previousPosition = boardMember ? boardMember.position : 'Admin';
+
+        // Remove from Society Board
+        society.board = society.board.filter(member => member.user.toString() !== userId.toString());
+        await society.save();
+
+        // Remove from User's workspaces
+        if (user) {
+            user.adminSocieties = user.adminSocieties.filter(id => id.toString() !== societyId.toString());
+            if (user.adminSocieties.length === 0) {
+                user.role = 'Student'; // Completely demote if they manage nothing else
+            }
+            await user.save();
         }
-        await user.save();
 
         // Log the audit trail
         await HandoverLog.create({
             society: societyId,
             user: userId,
-            action: 'Demoted to Student',
+            action: `Revoked ${previousPosition} access`,
             performedBy: req.user._id
         });
 
-        res.status(200).json({ success: true, message: 'User access revoked successfully' });
+        res.status(200).json({ success: true, message: 'Access revoked successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
