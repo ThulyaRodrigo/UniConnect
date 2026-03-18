@@ -100,3 +100,19 @@ exports.demoteAdmin = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get Audit Trail History for a society
+// @route   GET /api/handover/society/:id/history
+// @access  Private/SuperAdmin
+exports.getHandoverHistory = async (req, res) => {
+    try {
+        const history = await HandoverLog.find({ society: req.params.id })
+            .populate('user', 'name email')
+            .populate('performedBy', 'name')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, data: history });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
