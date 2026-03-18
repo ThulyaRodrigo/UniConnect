@@ -42,3 +42,16 @@ exports.getSocietyEvents = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get ALL events (For the public Student Browse Events page)
+// @route   GET /api/events
+// @access  Public
+exports.getAllEvents = async (req, res) => {
+    try {
+        // Populate the society details so the frontend can display the society name
+        const events = await Event.find().populate('society', 'name category logo').sort({ date: 1 });
+        res.status(200).json({ success: true, data: events });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
