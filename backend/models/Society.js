@@ -36,7 +36,23 @@ const societySchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
-    }
+    },
+    board: [{
+        user: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'User',
+            required: true
+        },
+        position: { 
+            type: String, 
+            required: true,
+            enum: ['President', 'Vice President', 'Secretary', 'Treasurer', 'Editor'] 
+        },
+        assignedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
 }, { 
     timestamps: true,
     toJSON: { virtuals: true },
