@@ -30,3 +30,15 @@ exports.createEvent = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get all events for a SPECIFIC society (For the Admin Dashboard)
+// @route   GET /api/events/society/:societyId
+// @access  Private (SocietyAdmin)
+exports.getSocietyEvents = async (req, res) => {
+    try {
+        const events = await Event.find({ society: req.params.societyId }).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: events });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
