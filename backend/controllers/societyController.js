@@ -31,3 +31,20 @@ exports.createSociety = async (req, res) => {
     }
 };
 
+// @desc    Get all societies
+// @route   GET /api/societies
+// @access  Public (or Private depending on if students need to see a list)
+exports.getSocieties = async (req, res) => {
+    try {
+        // Find all active societies, sort alphabetically by name
+        const societies = await Society.find({ isActive: true }).sort({ name: 1 });
+        
+        res.status(200).json({
+            success: true,
+            count: societies.length,
+            data: societies
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
