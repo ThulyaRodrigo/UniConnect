@@ -20,3 +20,15 @@ exports.searchStudents = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get current board members of a society
+// @route   GET /api/handover/society/:id/board
+// @access  Private/SuperAdmin
+exports.getSocietyBoard = async (req, res) => {
+    try {
+        const board = await User.find({ adminSocieties: req.params.id }).select('name email role');
+        res.status(200).json({ success: true, data: board });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
