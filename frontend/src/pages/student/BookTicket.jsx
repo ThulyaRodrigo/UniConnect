@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Calendar as CalendarIcon, MapPin, Clock, Users, 
-  Bus, UploadCloud, Info, CheckCircle, ArrowLeft, FileText, UserPlus, Loader2, Search 
+  Bus, UploadCloud, Info, CheckCircle, ArrowLeft, FileText, UserPlus, Loader2, Search, Ticket, Building
 } from 'lucide-react';
 
 export default function BookTicket() {
@@ -96,19 +96,19 @@ export default function BookTicket() {
   };
 
   if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-sliit-blue h-10 w-10" /></div>;
-  if (!event) return <div className="text-center p-20 text-red-500">Event not found.</div>;
+  if (!event) return <div className="text-center p-20 text-red-500 font-bold text-xl">Event not found.</div>;
 
   if (isSuccess) {
     return (
       <div className="max-w-2xl mx-auto mt-12 bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
-        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <CheckCircle className="h-10 w-10" />
+        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <CheckCircle className="h-12 w-12" />
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Booking Submitted!</h2>
-        <p className="text-gray-600 mb-8 leading-relaxed">
-          Your payment slip has been uploaded securely. Our AI system will verify your transaction shortly. You will receive your E-Tickets via email once confirmed.
+        <h2 className="text-3xl font-black text-gray-900 mb-4">Reservation Confirmed!</h2>
+        <p className="text-gray-500 mb-10 leading-relaxed text-lg">
+          Your reservation request has been received. If payment was required, our AI system or the society admin will verify your transaction shortly. You will receive your E-Tickets via email once confirmed.
         </p>
-        <Link to="/my-tickets" className="bg-sliit-blue text-white px-8 py-3.5 rounded-xl font-bold hover:bg-blue-800 transition-colors shadow-md shadow-blue-500/20">
+        <Link to="/my-tickets" className="bg-sliit-blue text-white px-8 py-4 rounded-2xl font-black hover:bg-blue-800 transition-colors shadow-lg shadow-blue-500/20 hover:-translate-y-1 active:translate-y-0 text-lg flex items-center justify-center">
           View Pending Tickets
         </Link>
       </div>
@@ -116,205 +116,260 @@ export default function BookTicket() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12">
-      <Link to="/events" className="inline-flex items-center text-gray-500 hover:text-sliit-blue transition-colors font-medium">
-        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Events
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+      <Link to="/events" className="inline-flex items-center text-gray-500 hover:text-sliit-blue transition-colors font-bold group">
+        <div className="p-2 bg-white border border-gray-200 rounded-lg group-hover:border-sliit-blue transition-colors mr-3">
+            <ArrowLeft className="h-4 w-4" />
+        </div>
+        Back to Events
       </Link>
 
-      {/* TOP SECTION: Details & Payment Summary */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 items-start relative">
         
-        {/* Left: Event Details */}
-        <div className="w-full lg:w-3/5 space-y-6">
-          <div className="h-[340px] w-full rounded-3xl overflow-hidden relative border border-gray-200 shadow-sm bg-gray-100">
-            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg text-sm font-black text-sliit-blue shadow-sm uppercase tracking-wider">
-              {event.society?.name || 'Society Event'}
+        {/* LEFT COLUMN: Main Info & Attendee selection */}
+        <div className="w-full lg:w-2/3 space-y-8">
+          
+          {/* 1. Header & Image */}
+          <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="h-64 sm:h-80 w-full relative bg-gray-100">
+              <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+              <div className="absolute top-5 left-5 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-black text-sliit-blue shadow-lg uppercase tracking-wider flex items-center gap-2 border border-white/20">
+                <Building className="h-4 w-4" /> {event.society?.name || 'Society Event'}
+              </div>
             </div>
-          </div>
-
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-            <h1 className="text-3xl font-black text-gray-900 mb-6 leading-tight">{event.title}</h1>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-blue-50 text-sliit-blue rounded-xl"><CalendarIcon className="h-5 w-5" /></div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Date</p>
-                  <p className="text-sm text-gray-500 font-medium">{event.date}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-blue-50 text-sliit-blue rounded-xl"><Clock className="h-5 w-5" /></div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Time</p>
-                  <p className="text-sm text-gray-500 font-medium">{event.time}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-blue-50 text-sliit-blue rounded-xl"><MapPin className="h-5 w-5" /></div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Location</p>
-                  <p className="text-sm text-gray-500 font-medium">{event.location}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-blue-50 text-sliit-blue rounded-xl"><Users className="h-5 w-5" /></div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">Capacity</p>
-                  <p className="text-sm text-gray-500 font-medium">{event.capacity} total seats</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100 pt-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">About this event</h3>
-              <p className="text-gray-600 leading-relaxed">{event.description}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Checkout & Upload */}
-        <div className="w-full lg:w-2/5 sticky top-24">
-          <form id="booking-form" onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-200">
-            <h2 className="text-2xl font-black text-gray-900 mb-6 border-b border-gray-100 pb-4">Checkout Order</h2>
-
-            {/* Ticket Quantity */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Number of Tickets</label>
-              <select 
-                value={ticketCount}
-                onChange={handleTicketCountChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none text-gray-900 font-medium transition-all"
-              >
-                {[1, 2, 3, 4, 5].map(num => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'Ticket' : 'Tickets'}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Manual Payment Details */}
-            {event.price > 0 && (
-              <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
-                <h4 className="text-sm font-bold text-sliit-blue mb-2">Bank Transfer Details</h4>
-                <p className="text-xs text-blue-800 mb-1">Bank: <strong>Commercial Bank</strong></p>
-                <p className="text-xs text-blue-800 mb-1">Account No: <strong>8900 3456 1123</strong></p>
-                <p className="text-xs text-blue-800">Name: <strong>{event.society?.name || 'Society Account'}</strong></p>
-              </div>
-            )}
-
-            {/* File Upload Zone */}
-            {event.price > 0 && (
-              <div className="mb-8">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Upload Payment Slip (LKR {ticketCount * event.price})</label>
-                <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-colors ${uploadedFile ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-sliit-blue'}`}>
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {uploadedFile ? (
-                      <>
-                        <FileText className="h-8 w-8 text-green-500 mb-2" />
-                        <p className="text-sm font-bold text-green-700">{uploadedFile.name}</p>
-                      </>
-                    ) : (
-                      <>
-                        <UploadCloud className="h-8 w-8 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500"><span className="font-bold text-sliit-blue">Click to upload</span> or drag/drop</p>
-                      </>
-                    )}
-                  </div>
-                  <input type="file" className="hidden" onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf" />
-                </label>
-              </div>
-            )}
-
-            <div className="flex justify-between items-end mb-6">
-              <div>
-                <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Amount</p>
-                <p className="text-4xl font-black text-gray-900">
-                  {event.price === 0 ? 'FREE' : `LKR ${ticketCount * event.price}`}
-                </p>
-              </div>
-            </div>
-
-            <button 
-              form="booking-form"
-              type="submit" 
-              disabled={isSubmitting || (event.price > 0 && !uploadedFile)}
-              className="w-full bg-sliit-orange hover:bg-[#e66600] text-white font-black py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg"
-            >
-              {isSubmitting ? 'Processing...' : 'Confirm Order'}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* BOTTOM SECTION: Full Width Grid for Attendee Logistics */}
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-200 mt-8">
-        <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
-          <div>
-            <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-              <UserPlus className="h-6 w-6 text-sliit-blue" /> Attendee Logistics
-            </h2>
-            <p className="text-gray-500 mt-1">Assign tickets to specific students and reserve their shuttle seats.</p>
-          </div>
-          {error && <span className="text-sm font-bold text-red-600 bg-red-50 px-3 py-1 rounded-lg">{error}</span>}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {attendees.map((attendee, index) => (
-            <div key={index} className="p-6 bg-gray-50 border border-gray-200 rounded-2xl space-y-4 hover:border-sliit-blue transition-colors relative overflow-hidden">
+            <div className="p-8 lg:p-10">
+              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 mb-8 leading-tight tracking-tight">{event.title}</h1>
               
-              <div className="absolute top-0 right-0 bg-blue-100 text-sliit-blue font-black text-xs px-3 py-1 rounded-bl-xl">
-                TICKET #{index + 1}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8 mb-8">
+                <div className="flex items-center gap-4 group">
+                  <div className="p-3 bg-blue-50/80 text-sliit-blue rounded-2xl group-hover:bg-sliit-blue group-hover:text-white transition-colors duration-300"><CalendarIcon className="h-6 w-6" /></div>
+                  <div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Date</p>
+                    <p className="text-base text-gray-900 font-bold">{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 group">
+                  <div className="p-3 bg-orange-50 text-sliit-orange rounded-2xl group-hover:bg-sliit-orange group-hover:text-white transition-colors duration-300"><Clock className="h-6 w-6" /></div>
+                  <div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Time</p>
+                    <p className="text-base text-gray-900 font-bold">{event.time}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 group">
+                  <div className="p-3 bg-green-50 text-green-600 rounded-2xl group-hover:bg-green-600 group-hover:text-white transition-colors duration-300"><MapPin className="h-6 w-6" /></div>
+                  <div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Location</p>
+                    <p className="text-base text-gray-900 font-bold max-w-[200px] sm:max-w-[250px] truncate" title={event.location}>{event.location}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 group">
+                  <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300"><Users className="h-6 w-6" /></div>
+                  <div>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Capacity</p>
+                    <p className="text-base text-gray-900 font-bold">{event.capacity} total seats</p>
+                  </div>
+                </div>
               </div>
 
-              {/* Student Search/Input */}
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Student Assignment</label>
-                {index === 0 ? (
-                  <div className="w-full px-4 py-2.5 bg-gray-200 border border-gray-300 rounded-xl text-sm font-bold text-gray-600 cursor-not-allowed flex items-center gap-2">
-                    {attendee.name}
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      placeholder="Search Name or SLIIT ID..." 
-                      value={attendee.name || attendee.studentId}
-                      onChange={(e) => {
-                        updateAttendee(index, 'name', e.target.value);
-                        updateAttendee(index, 'studentId', e.target.value); // Simulating raw input for now
-                      }}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium outline-none focus:border-sliit-blue focus:ring-1 focus:ring-sliit-blue transition-all"
-                    />
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  </div>
-                )}
+              <div className="border-t border-gray-100 pt-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">About this event</h3>
+                <p className="text-gray-600 leading-relaxed text-base">{event.description}</p>
               </div>
+            </div>
+          </div>
 
-              {/* Transport Selection */}
+          {/* 2. Attendee Logistics Section */}
+          <div className="bg-white p-8 lg:p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-8 gap-6 border-b border-gray-100 pb-8">
               <div>
-                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase mb-2">
-                  <Bus className="h-3.5 w-3.5 text-sliit-orange" /> Optional Shuttle
-                </label>
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
+                  <UserPlus className="h-6 w-6 text-sliit-blue" /> Attendee Logistics
+                </h2>
+                <p className="text-gray-500 mt-2 text-sm max-w-sm">Assign tickets to specific students and reserve optional shuttle seats.</p>
+              </div>
+              
+              <div className="shrink-0 w-full sm:w-56 bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
+                <label className="block text-xs font-black text-sliit-blue uppercase tracking-widest mb-2">Ticket Quantity</label>
                 <select 
-                  value={attendee.transportRoute}
-                  onChange={(e) => updateAttendee(index, 'transportRoute', e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-medium outline-none focus:border-sliit-orange focus:ring-1 focus:ring-sliit-orange transition-all"
+                  value={ticketCount}
+                  onChange={handleTicketCountChange}
+                  className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none text-gray-900 font-black cursor-pointer shadow-sm hover:border-sliit-blue transition-all"
                 >
-                  <option value="">I do not need transport</option>
-                  {transportOptions.map(option => (
-                    <option key={option.id} value={option.id} disabled={option.remainingSeats === 0}>
-                      {option.route} {option.remainingSeats === 0 ? '(Full)' : `(${option.remainingSeats} left)`}
-                    </option>
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <option key={num} value={num}>{num} {num === 1 ? 'Ticket' : 'Tickets'}</option>
                   ))}
                 </select>
               </div>
-
             </div>
-          ))}
+
+            {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 font-bold flex items-center gap-3"><Info className="h-5 w-5 shrink-0" /> {error}</div>}
+
+            <div className="space-y-4">
+              {attendees.map((attendee, index) => (
+                <div key={index} className="p-6 bg-gray-50 border border-gray-200 rounded-2xl flex flex-col md:flex-row gap-6 hover:border-sliit-blue transition-colors relative overflow-hidden group focus-within:border-sliit-blue focus-within:ring-2 focus-within:ring-blue-100">
+                  
+                  <div className="absolute top-0 right-0 bg-blue-100/80 backdrop-blur text-sliit-blue font-black text-[10px] px-4 py-1.5 rounded-bl-2xl uppercase tracking-widest shadow-sm">
+                    Ticket #{index + 1}
+                  </div>
+
+                  {/* Student Assessment */}
+                  <div className="flex-1 space-y-2.5">
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">Assign Member</label>
+                    {index === 0 ? (
+                      <div className="w-full px-4 py-3 bg-gray-200/70 border border-gray-300 rounded-xl text-sm font-bold text-gray-500 cursor-not-allowed flex items-center h-[52px]">
+                        {attendee.name}
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          placeholder="Search SLIIT Email or ID..." 
+                          value={attendee.name || attendee.studentId}
+                          onChange={(e) => {
+                            updateAttendee(index, 'name', e.target.value);
+                            updateAttendee(index, 'studentId', e.target.value);
+                          }}
+                          className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-sm font-bold outline-none focus:border-sliit-blue focus:ring-0 transition-all h-[52px] shadow-sm placeholder:text-gray-400 placeholder:font-medium"
+                        />
+                        <Search className="absolute left-4 top-[18px] h-4 w-4 text-gray-400 group-focus-within:text-sliit-blue transition-colors" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Transport Selection */}
+                  <div className="w-full md:w-64 shrink-0 space-y-2.5">
+                    <label className="flex items-center gap-1.5 text-xs font-black text-gray-500 uppercase tracking-widest">
+                       Optional Shuttle
+                    </label>
+                    <div className="relative">
+                      <select 
+                        value={attendee.transportRoute}
+                        onChange={(e) => updateAttendee(index, 'transportRoute', e.target.value)}
+                        className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-sm font-bold outline-none focus:border-sliit-orange focus:ring-0 transition-all cursor-pointer h-[52px] shadow-sm appearance-none"
+                      >
+                        <option value="">No transport needed</option>
+                        {transportOptions.map(option => (
+                          <option key={option.id} value={option.id} disabled={option.remainingSeats === 0}>
+                            {option.route} {option.remainingSeats === 0 ? '(Full)' : `(${option.remainingSeats} left)`}
+                          </option>
+                        ))}
+                      </select>
+                      <Bus className="absolute left-4 top-[18px] h-4 w-4 text-sliit-orange" />
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+
+          </div>
         </div>
+
+        {/* RIGHT COLUMN: Sticky Order Summary & Payment */}
+        <div className="w-full lg:w-1/3 lg:sticky lg:top-5 pb-8 lg:pb-0">
+          <form id="booking-form" onSubmit={handleSubmit} className="bg-white p-8 rounded-[2rem] shadow-2xl shadow-gray-200/50 border border-gray-100 border-t-4 border-t-sliit-blue flex flex-col gap-8 relative overflow-hidden">
+            
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+
+            <div className="relative">
+              <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+                <Ticket className="h-6 w-6 text-sliit-blue" /> Order Summary
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center text-sm font-bold text-gray-600">
+                  <span>Registration Fee</span>
+                  <span>{event.price === 0 ? 'FREE' : `LKR ${event.price.toLocaleString()}`}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-bold text-gray-600">
+                  <span>Number of Tickets</span>
+                  <span className="bg-gray-100 px-2 py-0.5 rounded-md text-gray-800">x {ticketCount}</span>
+                </div>
+                <div className="pt-4 mt-2 border-t border-dashed border-gray-300 flex justify-between items-end">
+                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Pay</span>
+                  <span className="text-4xl font-black text-sliit-blue tracking-tight">
+                    {event.price === 0 ? 'FREE' : `LKR ${(ticketCount * event.price).toLocaleString()}`}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {event.price > 0 && (
+              <div className="space-y-8 mt-2">
+                <div className="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-blue-200/50 rounded-full blur-xl -mr-6 -mt-6"></div>
+                  <h4 className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Bank Transfer Details
+                  </h4>
+                  <div className="space-y-2">
+                    <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                      <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Bank</span> 
+                      <strong className="font-bold">Commercial Bank</strong>
+                    </p>
+                    <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                      <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Account No</span> 
+                      <strong className="font-mono bg-white border border-blue-200 px-2 py-0.5 rounded text-blue-900 font-bold shadow-sm">8900 3456 1123</strong>
+                    </p>
+                    <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                      <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Name</span> 
+                      <strong className="font-bold">{event.society?.name || 'Society Account'}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center justify-between text-[11px] font-black text-gray-500 uppercase tracking-widest mb-3">
+                    <span>Upload Payment Slip</span>
+                    <span className="text-red-500 bg-red-50 px-2 py-0.5 rounded">Required</span>
+                  </label>
+                  <label className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${uploadedFile ? 'border-green-400 bg-green-50 shadow-inner' : 'border-gray-300 bg-gray-50 hover:bg-white hover:border-sliit-blue hover:shadow-md'}`}>
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+                      {uploadedFile ? (
+                        <>
+                          <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-3 shadow-sm">
+                             <CheckCircle className="h-6 w-6 text-green-600" />
+                          </div>
+                          <p className="text-sm font-bold text-green-700 truncate max-w-full px-2">{uploadedFile.name}</p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="h-12 w-12 bg-white shadow-sm border border-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <UploadCloud className="h-6 w-6 text-sliit-blue" />
+                          </div>
+                          <p className="text-sm text-gray-500 font-medium"><span className="font-bold text-sliit-blue underline underline-offset-2">Click to upload</span> or drag over</p>
+                          <p className="text-[10px] text-gray-400 mt-2 uppercase font-bold tracking-widest bg-gray-100 px-2 py-1 rounded-md">JPG, PNG, PDF &bull; max 5MB</p>
+                        </>
+                      )}
+                    </div>
+                    <input type="file" className="hidden" onChange={handleFileChange} accept=".jpg,.jpeg,.png,.pdf" />
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-2">
+              <button 
+                form="booking-form"
+                type="submit" 
+                disabled={isSubmitting || (event.price > 0 && !uploadedFile)}
+                className="w-full bg-sliit-orange hover:bg-[#e66600] text-white font-black py-4.5 rounded-2xl shadow-xl shadow-orange-500/20 hover:shadow-orange-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 text-lg"
+              >
+                {isSubmitting ? (
+                   <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</>
+                ) : (
+                   'Confirm Reservation'
+                )}
+              </button>
+              
+              <p className="text-center text-[11px] text-gray-400 font-bold mt-4 px-4 leading-relaxed">
+                By confirming, you agree to the UniConnect <span className="underline cursor-pointer">event policy</span> and <span className="underline cursor-pointer">ticket conditions</span>.
+              </p>
+            </div>
+          </form>
+        </div>
+
       </div>
-      
     </div>
   );
 }
