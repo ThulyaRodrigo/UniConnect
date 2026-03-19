@@ -35,7 +35,7 @@ const bookingSchema = new mongoose.Schema({
         name: { type: String, required: true },
         transportRoute: { 
             type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Transport',
+            ref: 'MasterRoute',
             default: null 
         }
     }],
