@@ -27,3 +27,29 @@ exports.getRoutes = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Update a Master Route
+// @route   PUT /api/routes/:id
+// @access  Private (SuperAdmin)
+exports.updateRoute = async (req, res) => {
+    try {
+        const route = await MasterRoute.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!route) return res.status(404).json({ message: 'Route not found' });
+        res.status(200).json({ success: true, data: route });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+// @desc    Delete a Master Route
+// @route   DELETE /api/routes/:id
+// @access  Private (SuperAdmin)
+exports.deleteRoute = async (req, res) => {
+    try {
+        const route = await MasterRoute.findByIdAndDelete(req.params.id);
+        if (!route) return res.status(404).json({ message: 'Route not found' });
+        res.status(200).json({ success: true, message: 'Route deleted' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
