@@ -1,6 +1,7 @@
 const MasterRoute = require('../models/MasterRoute');
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
+const Transport = require('../models/Transport');
 
 // SUPER ADMIN FUNCTIONS (MasterRoutes.jsx)
 
@@ -63,48 +64,43 @@ exports.deleteRoute = async (req, res) => {
 // @access  Private (SocietyAdmin)
 exports.getLogisticsStats = async (req, res) => {
     try {
-        // 1. Get all events for this society
+        // Get all events for this society
         const events = await Event.find({ society: req.params.societyId }).select('title date');
-        const activeRoutes = await MasterRoute.find({ status: 'Active' });
 
         const logisticsData = [];
 
-        // 2. Loop through each event to calculate bookings per route
+        // Loop through each event to calculate bookings per localized event transport route
         for (const event of events) {
+            // Find transports specifically generated for this event!
+            const eventTransports = await Transport.find({ event: event._id });
+            
+            // If the event has no transports enabled, we skip entirely
+            if (!eventTransports || eventTransports.length === 0) continue;
+
             let totalEventBookings = 0;
             const routeStats = [];
 
-            for (const route of activeRoutes) {
-                // Count how many attendees selected THIS route for THIS event
-                // This uses MongoDB aggregation to count the nested array items
-                const bookings = await Booking.aggregate([
-                    { $match: { event: event._id } },
-                    { $unwind: "$attendees" },
-                    { $match: { "attendees.transportRoute": route._id } },
-                    { $count: "bookedCount" }
-                ]);
-
-                const booked = bookings.length > 0 ? bookings[0].bookedCount : 0;
+            for (const transport of eventTransports) {
+                // Determine booked seats mathematically
+                const booked = transport.totalCapacity - transport.remainingSeats;
                 totalEventBookings += booked;
 
                 routeStats.push({
-                    id: route._id,
-                    destination: route.destination,
-                    capacity: route.capacity,
+                    id: transport._id, 
+                    destination: transport.route,
+                    capacity: transport.totalCapacity,
                     booked: booked
                 });
             }
 
-            // Only push the event to the dashboard if someone actually booked transport
-            if (totalEventBookings > 0) {
-                logisticsData.push({
-                    id: event._id,
-                    title: event.title,
-                    date: new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-                    totalBooked: totalEventBookings,
-                    routes: routeStats
-                });
-            }
+            // Push event to dashboard if it has transport configured, even if 0 bookings
+            logisticsData.push({
+                id: event._id,
+                title: event.title,
+                date: new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                totalBooked: totalEventBookings,
+                routes: routeStats
+            });
         }
 
         res.status(200).json({ success: true, data: logisticsData });
