@@ -112,3 +112,35 @@ exports.getLogisticsStats = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get Passenger Manifest for a specific Route on an Event
+// @route   GET /api/routes/logistics/manifest/:eventId/:routeId
+// @access  Private (SocietyAdmin)
+exports.getRouteManifest = async (req, res) => {
+    try {
+        const { eventId, routeId } = req.params;
+
+        // Fetch bookings for this event that include this route
+        const bookings = await Booking.find({ event: eventId })
+            .select('attendees')
+            .lean();
+
+        let manifest = [];
+
+        // Extract the matching attendees
+        bookings.forEach(booking => {
+            booking.attendees.forEach(attendee => {
+                if (attendee.transportRoute && attendee.transportRoute.toString() === routeId) {
+                    manifest.push({
+                        studentId: attendee.studentId,
+                        name: attendee.name
+                    });
+                }
+            });
+        });
+
+        res.status(200).json({ success: true, count: manifest.length, data: manifest });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
