@@ -120,3 +120,26 @@ exports.scanSlipWithAI = async (req, res) => {
         res.status(500).json({ message: 'AI Processing Error', error: error.message });
     }
 };
+
+// @desc    Approve or Reject a Booking
+// @route   PUT /api/verify/action/:bookingId
+// @access  Private (SocietyAdmin)
+exports.verifyBooking = async (req, res) => {
+    try {
+        const { action, reason } = req.body; 
+        const booking = await Booking.findById(req.params.bookingId);
+
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        booking.status = action === 'Approved' ? 'Confirmed' : 'Rejected';
+        if (action === 'Rejected') booking.rejectionReason = reason;
+        
+        booking.verifiedAt = new Date();
+        await booking.save();
+
+        const populatedBooking = await Booking.findById(booking._id).populate('event', 'title').populate('primaryBuyer', 'name');
+        res.status(200).json({ success: true, data: mapToUIFormat(populatedBooking) });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
