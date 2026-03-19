@@ -5,3 +5,10 @@
   --color-sliit-orange: #FF7100;
   --color-sliit-yellow: #F7ECB5;
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
