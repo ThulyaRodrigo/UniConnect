@@ -110,17 +110,17 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">University Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">University Email or Student ID</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   name="email"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue focus:border-transparent outline-none transition-all text-gray-900"
-                  placeholder="student@sliit.lk"
+                  placeholder="student@sliit.lk or ITxxxx"
                   onChange={handleChange}
                 />
               </div>

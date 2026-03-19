@@ -1,7 +1,7 @@
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, 
-  TextField, MenuItem, Box, IconButton, Typography, Snackbar, Alert 
+  TextField, MenuItem, Box, IconButton, Typography, Snackbar, Alert, Switch, FormControlLabel 
 } from '@mui/material';
 import { Plus, Edit2, Trash2, Calendar as CalendarIcon, FileSpreadsheet, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
@@ -24,7 +24,8 @@ export default function ManageEvents() {
     location: '',
     price: 0,
     capacity: 0,
-    description: ''
+    description: '',
+    enableTransport: false
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
@@ -60,7 +61,8 @@ export default function ManageEvents() {
         location: '',
         price: 0,
         capacity: 0,
-        description: ''
+        description: '',
+        enableTransport: false
     });
     setSelectedFile(null);
   };
@@ -89,6 +91,7 @@ export default function ManageEvents() {
     formDataToSend.append('price', formData.price);
     formDataToSend.append('capacity', formData.capacity);
     formDataToSend.append('description', formData.description);
+    formDataToSend.append('enableTransport', formData.enableTransport);
     formDataToSend.append('societyId', activeWorkspace._id); // From Context Switcher!
     formDataToSend.append('image', selectedFile); // The actual file object
 
@@ -282,6 +285,17 @@ export default function ManageEvents() {
             name="description" 
             value={formData.description} 
             onChange={handleInputChange} 
+          />
+
+          <FormControlLabel 
+            control={
+                <Switch 
+                    checked={formData.enableTransport} 
+                    onChange={(e) => setFormData({...formData, enableTransport: e.target.checked})} 
+                    color="primary"
+                />
+            } 
+            label="Enable Shuttle Transport Options (Auto-copies active global routes)" 
           />
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, border: '1px dashed #cbd5e1', borderRadius: 2, bgcolor: '#f8fafc' }}>

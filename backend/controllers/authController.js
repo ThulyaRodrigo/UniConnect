@@ -15,10 +15,10 @@ const generateToken = (id) => {
 // @access  Public
 exports.registerUser = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, studentId } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({ message: 'Please add all fields' });
+        if (!name || !email || !password || !studentId) {
+            return res.status(400).json({ message: 'Please add all fields including student ID' });
         }
 
         // Check if user exists
@@ -35,6 +35,7 @@ exports.registerUser = async (req, res) => {
         const user = await User.create({
             name,
             email,
+            studentId,
             password: hashedPassword,
             role: 'Student', 
             adminSocieties: []
@@ -66,9 +67,9 @@ exports.loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Please provide email and password' });
         }
 
-        // Find user by email and explicitly select the password field (since it's hidden by default)
+        // Find user by email or studentId and explicitly select the password field (since it's hidden by default)
         // Populate the adminSocieties so the frontend workspace switcher has the names ready!
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ $or: [{ email }, { studentId: email }] })
             .select('+password')
             .populate('adminSocieties', 'name category'); // Pulls in the Society Name
 

@@ -22,6 +22,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    studentId: '',
     password: '',
     confirmPassword: '' 
   });
@@ -53,6 +54,7 @@ export default function Signup() {
       const payload = {
         name: formData.name,
         email: formData.email,
+        studentId: formData.studentId,
         password: formData.password
       };
 
@@ -112,9 +114,9 @@ export default function Signup() {
           {/* ─── SIGNUP FORM ─── */}
           {!isSuccess && (
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-          <div className="mb-8 text-center lg:text-left">
+          <div className="mb-5 text-center lg:text-left">
             <h2 className="text-3xl font-bold text-gray-900">Join UniConnet</h2>
-            <p className="text-gray-500 mt-2">Create your official campus account.</p>
+            <p className="text-gray-500 ">Create your official campus account.</p>
           </div>
 
           {/* Display Backend Errors */}
@@ -137,6 +139,23 @@ export default function Signup() {
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
                   placeholder="Kushan Perera"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Student ID (IT Number)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <GraduationCap className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  name="studentId"
+                  required
+                  className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
+                  placeholder="itxxxxxxxx"
                   onChange={handleChange}
                 />
               </div>
@@ -211,13 +230,13 @@ export default function Signup() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-sliit-orange hover:bg-[#e66600] text-white font-semibold rounded-xl transition-all shadow-md shadow-orange-500/30 mt-1 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
-          <div className="mt-8 text-center text-sm text-gray-600">
+          <div className="mt-5 text-center text-sm text-gray-600">
             Already have an account?{' '}
             <Link to="/" className="font-semibold text-sliit-blue hover:underline">
               Sign in instead

@@ -17,9 +17,13 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/societies', require('./routes/societyRoutes'));
 app.use('/api/handover', require('./routes/handoverRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/transports', require('./routes/transportRoutes'));
+app.use('/api/routes', require('./routes/routeRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
