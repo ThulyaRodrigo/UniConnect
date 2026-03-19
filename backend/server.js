@@ -24,6 +24,7 @@ app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/transports', require('./routes/transportRoutes'));
 app.use('/api/routes', require('./routes/routeRoutes'));
+app.use('/api/verify', require('./routes/verificationRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
