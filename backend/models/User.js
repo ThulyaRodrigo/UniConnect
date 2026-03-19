@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required: [true, 'Please add a name'] 
     },
+    studentId: {
+        type: String,
+        unique: true,
+        sparse: true // Allows nulls to not clash for non-students
+    },
     email: { 
         type: String, 
         required: [true, 'Please add an email'], 
