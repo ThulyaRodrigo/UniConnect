@@ -1,5 +1,7 @@
 const Event = require('../models/Event');
 const Society = require('../models/Society');
+const MasterRoute = require('../models/MasterRoute');
+const Transport = require('../models/Transport');
 
 // @desc    Create a new event
 // @route   POST /api/events
@@ -24,6 +26,21 @@ exports.createEvent = async (req, res) => {
             createdBy: req.user._id,
             image: req.file.path // The secure Cloudinary URL
         });
+
+        // Add auto-transport generation logic
+        if (req.body.enableTransport === 'true') {
+            const masterRoutes = await MasterRoute.find({ status: 'Active' });
+            
+            if (masterRoutes.length > 0) {
+                const transportDocs = masterRoutes.map(mr => ({
+                    route: mr.destination,
+                    totalCapacity: mr.capacity,
+                    remainingSeats: mr.capacity,
+                    event: newEvent._id
+                }));
+                await Transport.insertMany(transportDocs);
+            }
+        }
 
         res.status(201).json({ success: true, data: newEvent });
     } catch (error) {
