@@ -20,6 +20,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/societies', require('./routes/societyRoutes'));
 app.use('/api/handover', require('./routes/handoverRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
