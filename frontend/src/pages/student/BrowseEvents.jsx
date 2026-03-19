@@ -80,7 +80,65 @@ export default function BrowseEvents() {
       </div>
 
       {/* Events Grid */}
-      
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-10 w-10 animate-spin text-sliit-blue mb-4" />
+            <p className="text-gray-500 font-medium">Loading upcoming events...</p>
+        </div>
+      ) : filteredEvents.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
+            <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <h3 className="text-lg font-bold text-gray-900">No Events Found</h3>
+            <p className="text-gray-500">There are no upcoming events in this category yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredEvents.map(event => (
+            <div key={event._id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
+              
+              <div className="h-48 shrink-0 overflow-hidden relative bg-gray-100">
+                <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-3 py-1 rounded-lg text-sm font-black text-sliit-blue shadow-sm">
+                  {event.price === 0 ? 'FREE' : `LKR ${event.price.toLocaleString()}`}
+                </div>
+              </div>
+              
+              <div className="p-5 flex-1 flex flex-col">
+                <p className="text-xs font-bold text-sliit-orange uppercase tracking-wider mb-2 line-clamp-1">
+                    {event.society?.name || 'Campus Event'}
+                </p>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 line-clamp-2 leading-tight">{event.title}</h3>
+                
+                <div className="space-y-2.5 text-sm text-gray-600 mb-6 font-medium">
+                  <div className="flex items-center gap-2.5">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span>{event.time}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <MapPin className="h-4 w-4 text-gray-400" />
+                    <span className="truncate">{event.location}</span>
+                  </div>
+                </div>
+                
+                {/* mt-auto pushes the button to the absolute bottom! */}
+                <div className="mt-auto pt-4 border-t border-gray-100">
+                  <Link 
+                    to={`/events/book/${event._id}`} 
+                    className="w-full flex items-center justify-center py-2.5 bg-blue-50 hover:bg-sliit-blue text-sliit-blue hover:text-white rounded-xl font-bold transition-colors"
+                  >
+                    View & Book Ticket
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
