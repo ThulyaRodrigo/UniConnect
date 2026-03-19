@@ -1,77 +1,103 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { useOutletContext } from 'react-router-dom';
 import { 
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   Paper, Button, Chip, Dialog, DialogTitle, DialogContent, DialogActions, 
   Typography, Box, Divider, Tabs, Tab, Select, MenuItem, FormControl, InputLabel,
-  TextField, Snackbar, Alert
+  TextField, Snackbar, Alert, CircularProgress
 } from '@mui/material';
-import { Bot, CheckCircle, XCircle, FileText, History, Clock } from 'lucide-react';
+import { Bot, CheckCircle, XCircle, FileText, History, Clock, Loader2 } from 'lucide-react';
 
 export default function VerifySlips() {
+  const { activeWorkspace } = useOutletContext();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAIScanning, setIsAIScanning] = useState(false);
+
+  // Helper: maps Gemini text confidence to MUI color
+  const getConfidenceColor = (confidence) => {
+    if (!confidence) return 'default';
+    const lower = confidence.toLowerCase();
+    if (lower === 'high') return 'success';
+    if (lower === 'medium') return 'warning';
+    return 'error'; // Low
+  };
+
+  // States matching your UI
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [tabValue, setTabValue] = useState(0); // 0 = Pending, 1 = History
+  const [tabValue, setTabValue] = useState(0); 
   const [selectedEventFilter, setSelectedEventFilter] = useState('All');
   
-  // Rejection Flow state
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  
-  // Snackbar states
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Mock data - Pending
-  const [pendingVerifications, setPendingVerifications] = useState([
-    {
-      id: 'BKG-1042',
-      studentName: 'Kamal Perera',
-      event: 'Nawaloka AI & Healthcare Symposium',
-      claimedAmount: 500,
-      status: 'Pending',
-      aiExtraction: {
-        amountFound: 500,
-        dateFound: '2026-03-05',
-        refFound: 'REF-89921',
-        matchConfidence: '98%'
-      },
-      slipImage: 'https://images.unsplash.com/photo-1592136669401-d08f5d9e2e96?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&q=80&w=400&h=800' 
-    },
-    {
-      id: 'BKG-1045',
-      studentName: 'Nimesha Silva',
-      event: 'React Native Appathon 2026',
-      claimedAmount: 1000,
-      status: 'Pending',
-      aiExtraction: {
-        amountFound: 100, 
-        dateFound: '2026-03-04',
-        refFound: 'Unreadable',
-        matchConfidence: '45%'
-      },
-      slipImage: 'https://images.unsplash.com/photo-1622535786898-f7b5ccd28226?q=80&w=1674&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&q=80&w=400&h=400'
-    }
-  ]);
-
-  // History State
+  // Real Data States
+  const [pendingVerifications, setPendingVerifications] = useState([]);
   const [pastVerifications, setPastVerifications] = useState([]);
 
-  // Extract unique events for the filter dropdown
+  // 1. Fetch Data from Backend
+  const fetchVerifications = useCallback(async () => {
+    if (!activeWorkspace?._id) return;
+    setIsLoading(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+      const res = await axios.get(`http://localhost:5001/api/verify/society/${activeWorkspace._id}`, config);
+      
+      setPendingVerifications(res.data.data.pending);
+      setPastVerifications(res.data.data.history);
+    } catch (error) {
+      console.log(error);
+      setSnackbar({ open: true, message: 'Failed to fetch verifications.', severity: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeWorkspace?._id]);
+
+  useEffect(() => {
+    fetchVerifications();
+  }, [fetchVerifications]);
+
   const uniqueEvents = useMemo(() => {
     const events = pendingVerifications.map(slip => slip.event);
     return ['All', ...new Set(events)];
   }, [pendingVerifications]);
 
-  // Filter the currently visible pending slips
   const visiblePendingSlips = useMemo(() => {
     if (selectedEventFilter === 'All') return pendingVerifications;
     return pendingVerifications.filter(slip => slip.event === selectedEventFilter);
   }, [pendingVerifications, selectedEventFilter]);
 
-  const handleOpen = (slip) => {
+  // 2. Open Modal & Handle Auto-Scanning
+  const handleOpen = async (slip) => {
     setSelectedSlip(slip);
     setIsRejecting(false);
-    setRejectReason('');
+    
+    // AUTO-FILL Rejection Reason if Gemini provided one!
+    setRejectReason(slip.aiExtraction?.suggestedRejectionReason || '');
     setOpenModal(true);
+
+    // Trigger scan if Gemini hasn't run yet (matchConfidence is the key signal)
+    if (!slip.aiExtraction?.matchConfidence) {
+        setIsAIScanning(true);
+        try {
+            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+            const res = await axios.post(`http://localhost:5001/api/verify/scan/${slip.id}`, {}, config);
+            
+            const updatedSlip = res.data.data;
+            setSelectedSlip(updatedSlip);
+            setRejectReason(updatedSlip.aiExtraction?.suggestedRejectionReason || '');
+            
+            // Update the array silently
+            setPendingVerifications(prev => prev.map(p => p.id === slip.id ? updatedSlip : p));
+        } catch (err) {
+            console.log(err);
+            setSnackbar({ open: true, message: 'AI Scan failed. Please verify manually.', severity: 'warning' });
+        } finally {
+            setIsAIScanning(false);
+        }
+    }
   };
 
   const handleClose = () => {
@@ -81,41 +107,47 @@ export default function VerifySlips() {
     setRejectReason('');
   };
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
+  const handleTabChange = (event, newValue) => setTabValue(newValue);
 
-  const handleVerify = (action) => {
-    // If they clicked Reject initially, show the reason input field
+  // 3. Submit Decision to Backend
+  const handleVerify = async (action) => {
     if (action === 'RejectInitiate') {
       setIsRejecting(true);
       return;
     }
 
-    const timestamp = new Date().toLocaleString();
-    const historyRecord = {
-      ...selectedSlip,
-      status: action,
-      reason: action === 'Rejected' ? rejectReason : 'Verified matching details.',
-      verifiedAt: timestamp
-    };
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+      const payload = { 
+        action: action, // 'Approved' or 'Rejected'
+        reason: action === 'Rejected' ? rejectReason : '' 
+      };
 
-    setPastVerifications(prev => [historyRecord, ...prev]);
-    setPendingVerifications(prev => prev.filter(slip => slip.id !== selectedSlip.id));
-    
-    // Reset if the selected event filter is now empty
-    if (visiblePendingSlips.length === 1 && selectedEventFilter !== 'All') {
-        setSelectedEventFilter('All');
+      const res = await axios.put(`http://localhost:5001/api/verify/action/${selectedSlip.id}`, payload, config);
+      const updatedRecord = res.data.data;
+
+      // Move from Pending to History locally for snappy UX
+      setPastVerifications(prev => [updatedRecord, ...prev]);
+      setPendingVerifications(prev => prev.filter(slip => slip.id !== selectedSlip.id));
+      
+      if (visiblePendingSlips.length === 1 && selectedEventFilter !== 'All') {
+          setSelectedEventFilter('All');
+      }
+
+      setSnackbar({
+        open: true,
+        message: `Slip ${action === 'Approved' ? 'approved' : 'rejected'} successfully.`,
+        severity: action === 'Approved' ? 'success' : 'info'
+      });
+
+      handleClose();
+    } catch (error) {
+      console.log(error);
+      setSnackbar({ open: true, message: 'Verification failed. Try again.', severity: 'error' });
     }
-
-    setSnackbar({
-      open: true,
-      message: `Slip ${action === 'Approved' ? 'approved' : 'rejected'} successfully.`,
-      severity: action === 'Approved' ? 'success' : 'info'
-    });
-
-    handleClose();
   };
+
+  if (isLoading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-sliit-blue h-10 w-10" /></div>;
 
   return (
     <div className="space-y-6">
@@ -175,13 +207,17 @@ export default function VerifySlips() {
                   <TableCell>{row.event}</TableCell>
                   <TableCell>LKR {row.claimedAmount}</TableCell>
                   <TableCell>
-                    <Chip 
-                      icon={<Bot size={16} />} 
-                      label={row.aiExtraction.matchConfidence} 
-                      color={parseInt(row.aiExtraction.matchConfidence) > 80 ? "success" : "warning"}
-                      variant="outlined"
-                      size="small"
-                    />
+                    {row.aiExtraction?.matchConfidence ? (
+                      <Chip 
+                        icon={<Bot size={16} />} 
+                        label={row.aiExtraction.matchConfidence} 
+                        color={getConfidenceColor(row.aiExtraction.matchConfidence)}
+                        variant="outlined"
+                        size="small"
+                      />
+                    ) : (
+                      <Chip label="Not scanned" size="small" variant="outlined" />
+                    )}
                   </TableCell>
                   <TableCell align="right">
                     <Button 
@@ -289,27 +325,35 @@ export default function VerifySlips() {
                 </Box>
 
                 <Box sx={{ p: 3, bgcolor: '#eff6ff', borderRadius: 2, border: '1px solid #bfdbfe' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Bot size={20} className="text-blue-700" />
-                    <Typography variant="overline" sx={{ color: '#1d4ed8', fontWeight: 'bold' }}>AI Extracted Data</Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">Amount Found:</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold', color: selectedSlip.aiExtraction.amountFound === selectedSlip.claimedAmount ? '#166534' : '#dc2626' }}>
-                      LKR {selectedSlip.aiExtraction.amountFound}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    {isAIScanning ? <CircularProgress size={18} /> : <Bot size={20} className="text-blue-700" />}
+                    <Typography variant="overline" sx={{ color: '#1d4ed8', fontWeight: 'bold' }}>
+                      {isAIScanning ? 'AI Scanning...' : 'AI Extracted Data'}
                     </Typography>
                   </Box>
                   
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">Date Read:</Typography>
-                    <Typography variant="body1" fontWeight="medium">{selectedSlip.aiExtraction.dateFound}</Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">Ref Number:</Typography>
-                    <Typography variant="body1" fontWeight="medium" fontFamily="monospace">{selectedSlip.aiExtraction.refFound}</Typography>
-                  </Box>
+                  {isAIScanning ? (
+                    <Typography variant="body2" color="text.secondary">Gemini is reading the payment slip...</Typography>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">Amount Found:</Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold', color: selectedSlip.aiExtraction?.amountFound != null ? (selectedSlip.aiExtraction.amountFound >= selectedSlip.claimedAmount ? '#166534' : '#dc2626') : 'text.secondary' }}>
+                          {selectedSlip.aiExtraction?.amountFound != null ? `LKR ${selectedSlip.aiExtraction.amountFound}` : '—'}
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">Date Read:</Typography>
+                        <Typography variant="body1" fontWeight="medium">{selectedSlip.aiExtraction?.dateFound || '—'}</Typography>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">Ref Number:</Typography>
+                        <Typography variant="body1" fontWeight="medium" fontFamily="monospace">{selectedSlip.aiExtraction?.refFound || '—'}</Typography>
+                      </Box>
+                    </>
+                  )}
                 </Box>
 
                 {/* Rejection Input Form (Appears conditionally) */}
