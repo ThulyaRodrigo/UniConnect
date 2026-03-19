@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Loader2, 
+  Laptop, Music, Palette, Trophy, Sparkles, Calendar as CalendarIcon 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const categoryConfig = {
+  'Technology': { icon: Laptop, color: 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600' },
+  'Musical': { icon: Music, color: 'bg-pink-50 text-pink-600 border-pink-100 hover:bg-pink-600' },
+  'Cultural': { icon: Palette, color: 'bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-600' },
+  'Sport': { icon: Trophy, color: 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600' },
+  'Religion': { icon: Sparkles, color: 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-600' },
+  'Default': { icon: CalendarIcon, color: 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-600' }
+};
 
 export default function CalendarView() {
   const [events, setEvents] = useState([]);
@@ -89,17 +101,21 @@ export default function CalendarView() {
                     {day}
                   </span>
                   
-                  <div className="mt-2 space-y-1.5">
-                    {dayEvents.map((evt) => (
-                      <div 
-                        key={evt._id} 
-                        onClick={() => navigate(`/events/book/${evt._id}`)}
-                        className="px-2.5 py-1.5 text-xs rounded-lg bg-blue-50 border border-blue-100 text-sliit-blue font-bold truncate cursor-pointer hover:bg-blue-600 hover:text-white transition-colors shadow-sm"
-                        title={evt.title}
-                      >
-                        {evt.title}
-                      </div>
-                    ))}
+                  <div className="mt-2 space-y-1.5 overflow-hidden">
+                    {dayEvents.map((evt) => {
+                      const { icon: Icon, color } = categoryConfig[evt.category] || categoryConfig.Default;
+                      return (
+                        <div 
+                          key={evt._id} 
+                          onClick={() => navigate(`/events/book/${evt._id}`)}
+                          className={`flex items-center gap-1.5 px-2 py-1 text-[10px] sm:text-xs rounded-lg border font-bold truncate cursor-pointer hover:text-white transition-all shadow-sm ${color}`}
+                          title={`${evt.category}: ${evt.title}`}
+                        >
+                          <Icon className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{evt.title}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
