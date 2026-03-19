@@ -1,32 +1,53 @@
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
-    userId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
-    },
-    eventId: { 
+    event: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Event', 
         required: true 
     },
-    transportId: { 
+    primaryBuyer: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Transport', 
-        default: null // Null if the student doesn't need a bus
+        ref: 'User', 
+        required: true 
     },
-    // For manual payment slip uploads
-    paymentSlipUrl: { type: String }, 
-    aiExtractedData: {
-        amount: { type: Number },
-        date: { type: Date },
-        referenceNo: { type: String }
+    ticketCount: { 
+        type: Number, 
+        required: true,
+        min: 1
     },
-    verificationStatus: { 
+    totalAmount: {
+        type: Number,
+        required: true
+    },
+    paymentSlipUrl: { 
         type: String, 
-        enum: ['Pending', 'Verified', 'Rejected'], 
-        default: 'Pending' 
+        default: null // Will be null for free events
+    },
+    status: {
+        type: String,
+        enum: ['Pending Verification', 'Confirmed', 'Rejected'],
+        default: 'Pending Verification'
+    },
+    // The specific details for each ticket booked in this transaction
+    attendees: [{
+        studentId: { type: String, required: true },
+        name: { type: String, required: true },
+        transportRoute: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Transport',
+            default: null 
+        }
+    }],
+    aiExtractionData: {
+        amountFound: { type: Number, default: null },
+        dateFound: { type: String, default: null },
+        refFound: { type: String, default: null },
+        matchConfidence: { type: String, default: null }
+    },
+    rejectionReason: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 
