@@ -77,3 +77,19 @@ exports.createBooking = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get all bookings for the logged-in student (For 'My Tickets' page)
+// @route   GET /api/bookings/my-tickets
+// @access  Private (Student)
+exports.getMyBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find({ primaryBuyer: req.user._id })
+            .populate('event', 'title date time location')
+            .populate('attendees.transportRoute', 'route')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, data: bookings });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
