@@ -25,7 +25,7 @@ exports.createBooking = async (req, res) => {
         // Calculate Total Amount
         const totalAmount = event.price * Number(ticketCount);
 
-        // alidate Payment Slip (Require it if the event is not free)
+        // Validate Payment Slip (Require it if the event is not free)
         if (event.price > 0 && !req.file) {
              return res.status(400).json({ message: 'Payment slip is required for paid events.' });
         }
@@ -79,39 +79,32 @@ exports.createBooking = async (req, res) => {
     }
 };
 
-// @desc    Get all bookings for the logged-in student (For 'My Tickets' page)
+// @desc    Get all bookings for the logged-in student AND bookings where they are an attendee
 // @route   GET /api/bookings/my-tickets
 // @access  Private (Student)
 exports.getMyBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({ primaryBuyer: req.user._id })
-            .populate('event', 'title date time location')
-            .populate('attendees.transportRoute', 'route')
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({ success: true, data: bookings });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
-    }
-};
-
-// @desc    Get all bookings for the logged-in student AND bookings where they are an attendee
-exports.getMyBookings = async (req, res) => {
-    try {
-        // Get the current user's Student ID
         const currentUser = await User.findById(req.user._id);
+        
+        // Prepare case-insensitive Regex for flawless guest fetching
+        const myId = currentUser.studentId ? currentUser.studentId.trim() : "";
+        const myEmail = currentUser.email ? currentUser.email.trim() : "";
 
-        // ind bookings where they are the buyer OR their studentId is in the attendees array
-        const bookings = await Booking.find({
-            $or: [
-                { primaryBuyer: req.user._id },
-                { "attendees.studentId": currentUser.studentId }
-            ]
-        })
-        .populate('event', 'title date time location')
-        .populate('primaryBuyer', 'name studentId') // Populate buyer to show "Gifted by"
-        .populate('attendees.transportRoute', 'route destination')
-        .sort({ createdAt: -1 });
+        // Build the OR array dynamically to avoid empty regex errors
+        const orConditions = [{ primaryBuyer: req.user._id }];
+        
+        if (myId) {
+            orConditions.push({ "attendees.studentId": { $regex: new RegExp(`^${myId}$`, 'i') } });
+        }
+        if (myEmail) {
+            orConditions.push({ "attendees.studentId": { $regex: new RegExp(`^${myEmail}$`, 'i') } });
+        }
+
+        const bookings = await Booking.find({ $or: orConditions })
+            .populate('event', 'title date time location')
+            .populate('primaryBuyer', 'name studentId') // Populate buyer to show "Gifted by"
+            .populate('attendees.transportRoute', 'route destination') // Ensure transport is populated
+            .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, data: bookings });
     } catch (error) {
