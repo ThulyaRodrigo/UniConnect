@@ -126,12 +126,33 @@ export default function BrowseEvents() {
                 
                 {/* mt-auto pushes the button to the absolute bottom! */}
                 <div className="mt-auto pt-4 border-t border-gray-100">
-                  <Link 
-                    to={`/events/book/${event._id}`} 
-                    className="w-full flex items-center justify-center py-2.5 bg-blue-50 hover:bg-sliit-blue text-sliit-blue hover:text-white rounded-xl font-bold transition-colors"
-                  >
-                    View & Book Ticket
-                  </Link>
+                  {(() => {
+                    const isSoldOut = (event.bookedCount || 0) >= event.capacity;
+                    const remaining = event.capacity - (event.bookedCount || 0);
+                    const isAlmostFull = !isSoldOut && remaining <= 10;
+                    if (isSoldOut) {
+                      return (
+                        <div className="w-full flex items-center justify-center py-2.5 bg-red-50 text-red-400 rounded-xl font-black tracking-widest text-sm cursor-not-allowed border border-red-100">
+                          🚫 SOLD OUT
+                        </div>
+                      );
+                    }
+                    return (
+                      <>
+                        {isAlmostFull && (
+                          <p className="text-center text-xs font-bold text-orange-500 mb-2">
+                            🔥 Only {remaining} {remaining === 1 ? 'seat' : 'seats'} left!
+                          </p>
+                        )}
+                        <Link
+                          to={`/events/book/${event._id}`}
+                          className="w-full flex items-center justify-center py-2.5 bg-blue-50 hover:bg-sliit-blue text-sliit-blue hover:text-white rounded-xl font-bold transition-colors"
+                        >
+                          View & Book Ticket
+                        </Link>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
