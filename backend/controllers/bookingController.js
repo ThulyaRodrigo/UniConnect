@@ -1,6 +1,7 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
 const Transport = require('../models/Transport');
+const User = require('../models/User');
 
 // @desc    Create a new booking (Group or Single)
 // @route   POST /api/bookings
@@ -87,6 +88,30 @@ exports.getMyBookings = async (req, res) => {
             .populate('event', 'title date time location')
             .populate('attendees.transportRoute', 'route')
             .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, data: bookings });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+// @desc    Get all bookings for the logged-in student AND bookings where they are an attendee
+exports.getMyBookings = async (req, res) => {
+    try {
+        // Get the current user's Student ID
+        const currentUser = await User.findById(req.user._id);
+
+        // ind bookings where they are the buyer OR their studentId is in the attendees array
+        const bookings = await Booking.find({
+            $or: [
+                { primaryBuyer: req.user._id },
+                { "attendees.studentId": currentUser.studentId }
+            ]
+        })
+        .populate('event', 'title date time location')
+        .populate('primaryBuyer', 'name studentId') // Populate buyer to show "Gifted by"
+        .populate('attendees.transportRoute', 'route destination')
+        .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, data: bookings });
     } catch (error) {
