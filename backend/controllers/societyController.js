@@ -69,3 +69,38 @@ exports.getSocietySettings = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Update Society Settings (Identity, Logo, Banking)
+// @route   PUT /api/societies/:id/settings
+// @access  Private (SocietyAdmin / SuperAdmin)
+exports.updateSocietySettings = async (req, res) => {
+    try {
+        const society = await Society.findById(req.params.id);
+        if (!society) return res.status(404).json({ message: 'Society not found' });
+
+        // Update Text Fields
+        if (req.body.description !== undefined) society.description = req.body.description;
+        if (req.body.email !== undefined) society.email = req.body.email;
+        if (req.body.website !== undefined) society.website = req.body.website;
+        
+        // Parse and update Bank Accounts (sent as JSON string via FormData)
+        if (req.body.bankAccounts) {
+            const parsedBanks = JSON.parse(req.body.bankAccounts);
+            society.bankAccounts = parsedBanks;
+        }
+
+        // Handle Cloudinary Logo Upload
+        if (req.file) {
+            society.logo = req.file.path;
+        }
+
+        await society.save();
+        
+        // Return populated document so the UI updates instantly
+        const updatedSociety = await Society.findById(req.params.id).populate('board.user', 'name email profilePic');
+        
+        res.status(200).json({ success: true, data: updatedSociety, message: 'Settings updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
