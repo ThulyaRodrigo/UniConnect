@@ -93,36 +93,41 @@ exports.updatePassword = async (req, res) => {
 // @desc    Assign a student to a Society Admin role
 exports.assignSocietyRole = async (req, res) => {
     try {
-        const { targetUserId, societyId, roleTitle } = req.body; 
+        const { targetUserId, societyId, roleTitle } = req.body; // roleTitle MUST be one of the Enums (e.g. 'President')
 
         const user = await User.findById(targetUserId);
         const society = await Society.findById(societyId);
 
         if (!user || !society) return res.status(404).json({ message: 'User or Society not found' });
 
+        // Update User Document
         if (!user.adminSocieties.includes(societyId)) user.adminSocieties.push(societyId);
         if (user.role === 'Student') user.role = 'SocietyAdmin';
-
-        // Add to Student's Gamified Leadership Record
+        
         user.leadershipHistory.push({
             society: society._id,
             societyName: society.name,
-            role: roleTitle || 'Committee Member',
+            role: roleTitle,
             startDate: new Date(),
             status: 'Active'
         });
-
         await user.save();
 
-        // Add to Immutable System Handover Log
+        // Update Society Document (Add to Board Array)
+        // Prevent duplicates
+        const existingBoardMember = society.board.find(b => b.user.toString() === targetUserId);
+        if (!existingBoardMember) {
+            society.board.push({ user: targetUserId, position: roleTitle });
+            await society.save();
+        }
+
+        // Add to Immutable Handover Log
         await HandoverLog.create({
-            society: society._id,
-            user: user._id,
-            action: `Promoted to ${roleTitle || 'Committee Member'}`,
-            performedBy: req.user._id
+            society: society._id, user: user._id,
+            action: `Assigned as ${roleTitle}`, performedBy: req.user._id
         });
 
-        res.status(200).json({ success: true, message: 'Role assigned successfully', data: user });
+        res.status(200).json({ success: true, message: 'Role assigned successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -134,34 +139,33 @@ exports.revokeSocietyRole = async (req, res) => {
         const { targetUserId, societyId, endStatus } = req.body; 
 
         const user = await User.findById(targetUserId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        const society = await Society.findById(societyId);
+        if (!user || !society) return res.status(404).json({ message: 'User or Society not found' });
 
+        // Update User Document
         user.adminSocieties = user.adminSocieties.filter(id => id.toString() !== societyId.toString());
-        if (user.adminSocieties.length === 0 && user.role !== 'SuperAdmin') {
-            user.role = 'Student';
-        }
+        if (user.adminSocieties.length === 0 && user.role !== 'SuperAdmin') user.role = 'Student';
 
-        // Close out Student's Gamified Record
         const activeRecordIndex = user.leadershipHistory.findLastIndex(
             record => record.society.toString() === societyId.toString() && record.status === 'Active'
         );
-
         if (activeRecordIndex !== -1) {
             user.leadershipHistory[activeRecordIndex].endDate = new Date();
-            user.leadershipHistory[activeRecordIndex].status = endStatus; // 'Completed' or 'Revoked'
+            user.leadershipHistory[activeRecordIndex].status = endStatus; 
         }
-
         await user.save();
 
-        // Add to Immutable System Handover Log
+        // Update Society Document (Remove from Board Array)
+        society.board = society.board.filter(b => b.user.toString() !== targetUserId);
+        await society.save();
+
+        // Add to Handover Log
         await HandoverLog.create({
-            society: societyId,
-            user: user._id,
-            action: endStatus === 'Revoked' ? 'Role Revoked' : 'Term Completed',
-            performedBy: req.user._id
+            society: societyId, user: user._id,
+            action: endStatus === 'Revoked' ? 'Role Revoked' : 'Term Completed', performedBy: req.user._id
         });
 
-        res.status(200).json({ success: true, message: `Role ${endStatus.toLowerCase()} successfully`, data: user });
+        res.status(200).json({ success: true, message: `Role ${endStatus.toLowerCase()} successfully` });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
