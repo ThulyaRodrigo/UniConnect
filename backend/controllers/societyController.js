@@ -48,3 +48,24 @@ exports.getSocieties = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get Society Settings & Board Members
+// @route   GET /api/societies/:id/settings
+// @access  Private (SocietyAdmin / SuperAdmin)
+exports.getSocietySettings = async (req, res) => {
+    try {
+        // Fetch the society and heavily populate the board array with actual User data
+        const society = await Society.findById(req.params.id)
+            .populate({
+                path: 'board.user',
+                select: 'name email profilePic'
+            });
+
+        if (!society) return res.status(404).json({ message: 'Society not found' });
+
+        // Since the board is inside the society document, we just send the society
+        res.status(200).json({ success: true, data: society });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
