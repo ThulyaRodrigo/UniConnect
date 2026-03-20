@@ -13,8 +13,9 @@ export default function BookTicket() {
   
   // Dynamic Group Booking State
   const [ticketCount, setTicketCount] = useState(1);
+  const currentUser = JSON.parse(localStorage.getItem('userInfo'));
   const [attendees, setAttendees] = useState([
-    { id: 1, studentId: 'Self', name: 'You (Primary Buyer)', transportRoute: '' }
+    { id: 1, studentId: currentUser?.studentId || currentUser?.email || 'Self', name: currentUser?.name || 'Primary Buyer', transportRoute: '' }
   ]);
 
   const [transportOptions, setTransportOptions] = useState([]);
@@ -102,8 +103,7 @@ export default function BookTicket() {
             const res = await axios.get(`http://localhost:5001/api/users/search?q=${value}`, config);
             
             // Filter out existing selected users and the current primary buyer to prevent duplicates
-            const selectedIds = attendees.map(a => a.studentId).filter(id => id && id !== 'Self');
-            // Mock primary buyer ID (In reality, filter by current logged in user ID if available)
+            const selectedIds = attendees.map(a => a.studentId).filter(Boolean);
             
             const filteredResults = res.data.data.filter(u => !selectedIds.includes(u.studentId));
             setSearchResults(prev => ({ ...prev, [index]: filteredResults }));
@@ -303,7 +303,7 @@ export default function BookTicket() {
                     <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">Assign Member</label>
                     {index === 0 ? (
                       <div className="w-full px-4 py-3 bg-gray-200/70 border border-gray-300 rounded-xl text-sm font-bold text-gray-500 cursor-not-allowed flex items-center h-[52px]">
-                        {attendee.name}
+                        {attendee.name} {attendee.studentId ? `(${attendee.studentId})` : ''} — You
                       </div>
                     ) : (
                       <>

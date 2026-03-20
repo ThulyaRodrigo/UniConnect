@@ -1,6 +1,7 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
 const Transport = require('../models/Transport');
+const User = require('../models/User');
 
 // @desc    Create a new booking (Group or Single)
 // @route   POST /api/bookings
@@ -24,7 +25,7 @@ exports.createBooking = async (req, res) => {
         // Calculate Total Amount
         const totalAmount = event.price * Number(ticketCount);
 
-        // alidate Payment Slip (Require it if the event is not free)
+        // Validate Payment Slip (Require it if the event is not free)
         if (event.price > 0 && !req.file) {
              return res.status(400).json({ message: 'Payment slip is required for paid events.' });
         }
@@ -78,14 +79,31 @@ exports.createBooking = async (req, res) => {
     }
 };
 
-// @desc    Get all bookings for the logged-in student (For 'My Tickets' page)
+// @desc    Get all bookings for the logged-in student AND bookings where they are an attendee
 // @route   GET /api/bookings/my-tickets
 // @access  Private (Student)
 exports.getMyBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({ primaryBuyer: req.user._id })
+        const currentUser = await User.findById(req.user._id);
+        
+        // Prepare case-insensitive Regex for flawless guest fetching
+        const myId = currentUser.studentId ? currentUser.studentId.trim() : "";
+        const myEmail = currentUser.email ? currentUser.email.trim() : "";
+
+        // Build the OR array dynamically to avoid empty regex errors
+        const orConditions = [{ primaryBuyer: req.user._id }];
+        
+        if (myId) {
+            orConditions.push({ "attendees.studentId": { $regex: new RegExp(`^${myId}$`, 'i') } });
+        }
+        if (myEmail) {
+            orConditions.push({ "attendees.studentId": { $regex: new RegExp(`^${myEmail}$`, 'i') } });
+        }
+
+        const bookings = await Booking.find({ $or: orConditions })
             .populate('event', 'title date time location')
-            .populate('attendees.transportRoute', 'route')
+            .populate('primaryBuyer', 'name studentId') // Populate buyer to show "Gifted by"
+            .populate('attendees.transportRoute', 'route destination') // Ensure transport is populated
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, data: bookings });
