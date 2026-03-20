@@ -35,8 +35,12 @@ const bookingSchema = new mongoose.Schema({
         name: { type: String, required: true },
         transportRoute: { 
             type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Transport', // Links to event-specific Transport, not global MasterRoute
+            ref: 'Transport',
             default: null 
+        },
+        checkedIn: { 
+            type: Boolean, 
+            default: false 
         }
     }],
     aiExtractionData: {
