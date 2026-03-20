@@ -65,9 +65,26 @@ exports.getSocietyEvents = async (req, res) => {
 // @access  Public
 exports.getAllEvents = async (req, res) => {
     try {
-        // Populate the society details so the frontend can display the society name
+        const Booking = require('../models/Booking');
         const events = await Event.find().populate('society', 'name category logo').sort({ date: 1 });
-        res.status(200).json({ success: true, data: events });
+
+        // Aggregate confirmed+pending ticket counts per event in one query
+        const bookingCounts = await Booking.aggregate([
+            { $match: { status: { $in: ['Confirmed', 'Pending Verification'] } } },
+            { $group: { _id: '$event', bookedCount: { $sum: '$ticketCount' } } }
+        ]);
+
+        // Build a quick lookup map: eventId -> bookedCount
+        const countMap = {};
+        bookingCounts.forEach(b => { countMap[b._id.toString()] = b.bookedCount; });
+
+        // Attach bookedCount to each event
+        const eventsWithAvailability = events.map(event => ({
+            ...event.toObject(),
+            bookedCount: countMap[event._id.toString()] || 0
+        }));
+
+        res.status(200).json({ success: true, data: eventsWithAvailability });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
