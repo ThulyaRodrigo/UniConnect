@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
+const Transport = require('../models/Transport');
 const axios = require('axios');
 const Tesseract = require('tesseract.js');
 const Groq = require('groq-sdk');
@@ -58,7 +59,6 @@ exports.scanSlipWithAI = async (req, res) => {
         const booking = await Booking.findById(req.params.bookingId);
         if (!booking || !booking.paymentSlipUrl) return res.status(404).json({ message: 'Slip not found' });
 
-        // Fetch Image Data (Used by both Gemini and Tesseract)
         const imageResponse = await axios.get(booking.paymentSlipUrl, { responseType: 'arraybuffer' });
         const mimeType = imageResponse.headers['content-type'];
         const imageBuffer = Buffer.from(imageResponse.data, 'binary');
@@ -66,7 +66,7 @@ exports.scanSlipWithAI = async (req, res) => {
 
         let extractedData;
 
-        // PIPELINE A: GEMINI VISION (Primary Method
+        // PIPELINE A: GEMINI VISION (Primary Method)
         try {
             const geminiPrompt = `
                 Analyze this bank transfer slip. Expected amount: LKR ${booking.totalAmount}.
@@ -94,8 +94,6 @@ exports.scanSlipWithAI = async (req, res) => {
             console.warn("⚠️ Gemini Pipeline Failed (Quota/Region Limit). Initiating Tesseract+Groq Fallback...", geminiError.message);
 
             // PIPELINE B: TESSERACT + GROQ (Fallback Method)
-            
-            // Run Tesseract directly on the buffer we already downloaded
             const { data: { text } } = await Tesseract.recognize(imageBuffer, 'eng');
             const rawOcrText = text.trim();
 
@@ -135,7 +133,6 @@ exports.scanSlipWithAI = async (req, res) => {
             console.log("✅ Verification successful via Tesseract+Groq Fallback");
         }
 
-        // Save the extracted data (Regardless of which pipeline succeeded)
         booking.aiExtractionData = extractedData;
         await booking.save();
 
@@ -147,70 +144,59 @@ exports.scanSlipWithAI = async (req, res) => {
     }
 };
 
-// @desc    Approve or Reject a Booking
+// @desc    Approve or Reject a Booking, Send Emails, and Release Seats
 // @route   PUT /api/verify/action/:bookingId
 // @access  Private (SocietyAdmin)
 exports.verifyBooking = async (req, res) => {
     try {
         const { action, reason } = req.body; 
-        const booking = await Booking.findById(req.params.bookingId);
-
-        if (!booking) return res.status(404).json({ message: 'Booking not found' });
-
-        booking.status = action === 'Approved' ? 'Confirmed' : 'Rejected';
-        if (action === 'Rejected') booking.rejectionReason = reason;
         
-        booking.verifiedAt = new Date();
-        await booking.save();
-
-        const populatedBooking = await Booking.findById(booking._id).populate('event', 'title').populate('primaryBuyer', 'name');
-        res.status(200).json({ success: true, data: mapToUIFormat(populatedBooking) });
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
-    }
-};
-
-// @desc    Approve or Reject a Booking & Send Emails
-exports.verifyBooking = async (req, res) => {
-    try {
-        const { action, reason } = req.body; 
-        
-        // Populate the transportRoute to get the actual bus name for the email!
         const booking = await Booking.findById(req.params.bookingId)
             .populate('event')
             .populate('primaryBuyer', 'name email studentId')
-            .populate('attendees.transportRoute', 'route'); // Gets the route name
+            .populate('attendees.transportRoute', 'route');
 
         if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
         booking.status = action === 'Approved' ? 'Confirmed' : 'Rejected';
-        if (action === 'Rejected') booking.rejectionReason = reason;
+        
+        if (action === 'Rejected') {
+            booking.rejectionReason = reason;
+            
+            // INVENTORY RELEASE LOGIC
+            for (let attendee of booking.attendees) {
+                if (attendee.transportRoute) {
+                    const transportToRelease = await Transport.findById(attendee.transportRoute._id);
+                    if (transportToRelease) {
+                        transportToRelease.remainingSeats += 1;
+                        await transportToRelease.save();
+                    }
+                    attendee.transportRoute = null; // Clear to prevent ghost data
+                }
+            }
+        }
+        
         booking.verifiedAt = new Date();
         await booking.save();
 
         // COMMUNICATION ECOSYSTEM LOGIC
         for (const attendee of booking.attendees) {
-            // Find the actual user account for this attendee 
             const attendeeUser = await User.findOne({ 
                 $or: [{ studentId: attendee.studentId }, { email: attendee.studentId }] 
             });
             
             if (attendeeUser && attendeeUser.email) {
                 if (action === 'Approved') {
-                    // UNIQUE TICKET ARCHITECTURE
-                    // Every attendee gets a unique Ticket ID based on their specific subdocument ID
                     const uniqueTicketId = `TKT-${attendee._id.toString().slice(-6).toUpperCase()}`;
                     const shuttleInfo = attendee.transportRoute ? attendee.transportRoute.route : 'No Transport Selected';
 
-                    // The QR code contains the specific attendee ID for event-day scanning!
                     const qrData = JSON.stringify({ 
-                        ticketId: attendee._id, // The scanner app will look for this!
+                        ticketId: attendee._id, 
                         bookingId: booking._id,
                         studentId: attendee.studentId
                     });
                     const qrBuffer = await qrcode.toBuffer(qrData, { type: 'png', margin: 2, width: 300 });
 
-                    // Inspiring Approval Email Template
                     const htmlContent = `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
                             <div style="background-color: #053668; color: white; padding: 30px; text-align: center;">
@@ -247,7 +233,6 @@ exports.verifyBooking = async (req, res) => {
                     });
 
                 } else if (action === 'Rejected') {
-                    // Rejection Email
                     const htmlContent = `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #fecaca; border-radius: 12px; overflow: hidden;">
                             <div style="background-color: #dc2626; color: white; padding: 20px; text-align: center;">
@@ -259,7 +244,9 @@ exports.verifyBooking = async (req, res) => {
                                 <div style="background-color: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0; color: #991b1b;">
                                     <strong>Admin Reason:</strong> ${reason}
                                 </div>
-                                <p>Please contact the society administration or submit a new booking with a clear payment slip.</p>
+                                <p style="color: #dc2626; font-weight: bold;">Action Required:</p>
+                                <p>Your reserved shuttle seats have been released back to the university pool. <strong>You must return to the platform and create a brand-new booking</strong> with a valid payment slip to secure your spot.</p>
+                                <p>You can view this rejection in the "Ticket History" tab of your dashboard.</p>
                             </div>
                         </div>
                     `;
