@@ -37,7 +37,9 @@ export default function VerifySlips() {
   const [pendingVerifications, setPendingVerifications] = useState([]);
   const [pastVerifications, setPastVerifications] = useState([]);
 
-  // 1. Fetch Data from Backend
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Fetch Data from Backend
   const fetchVerifications = useCallback(async () => {
     if (!activeWorkspace?._id) return;
     setIsLoading(true);
@@ -69,7 +71,7 @@ export default function VerifySlips() {
     return pendingVerifications.filter(slip => slip.event === selectedEventFilter);
   }, [pendingVerifications, selectedEventFilter]);
 
-  // 2. Open Modal & Handle Auto-Scanning
+  // Open Modal & Handle Auto-Scanning
   const handleOpen = async (slip) => {
     setSelectedSlip(slip);
     setIsRejecting(false);
@@ -109,24 +111,25 @@ export default function VerifySlips() {
 
   const handleTabChange = (event, newValue) => setTabValue(newValue);
 
-  // 3. Submit Decision to Backend
+  // Submit Decision to Backend
   const handleVerify = async (action) => {
     if (action === 'RejectInitiate') {
       setIsRejecting(true);
       return;
     }
 
+    setIsVerifying(true); // Lock the UI
+
     try {
       const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
       const payload = { 
-        action: action, // 'Approved' or 'Rejected'
+        action: action, 
         reason: action === 'Rejected' ? rejectReason : '' 
       };
 
       const res = await axios.put(`http://localhost:5001/api/verify/action/${selectedSlip.id}`, payload, config);
       const updatedRecord = res.data.data;
 
-      // Move from Pending to History locally for snappy UX
       setPastVerifications(prev => [updatedRecord, ...prev]);
       setPendingVerifications(prev => prev.filter(slip => slip.id !== selectedSlip.id));
       
@@ -144,6 +147,8 @@ export default function VerifySlips() {
     } catch (error) {
       console.log(error);
       setSnackbar({ open: true, message: 'Verification failed. Try again.', severity: 'error' });
+    } finally {
+      setIsVerifying(false); // Unlock the UI
     }
   };
 
@@ -381,12 +386,12 @@ export default function VerifySlips() {
             <Divider />
             <DialogActions sx={{ p: 3, justifyContent: 'space-between' }}>
               {!isRejecting ? (
-                // Initial Action Buttons
                 <>
                   <Button 
                     onClick={() => handleVerify('RejectInitiate')} 
                     color="error" 
                     variant="outlined"
+                    disabled={isVerifying}
                     startIcon={<XCircle size={18} />}
                     sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
                   >
@@ -395,19 +400,20 @@ export default function VerifySlips() {
                   <Button 
                     onClick={() => handleVerify('Approved')} 
                     variant="contained"
-                    startIcon={<CheckCircle size={18} />}
+                    disabled={isVerifying}
+                    startIcon={isVerifying ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
                     sx={{ backgroundColor: '#FF7100', '&:hover': { backgroundColor: '#e66600' }, borderRadius: 2, textTransform: 'none', px: 4 }}
                   >
-                    Verify & Approve
+                    {isVerifying ? 'Processing & Emailing...' : 'Verify & Approve'}
                   </Button>
                 </>
               ) : (
-                // Rejection Confirmation Buttons
                 <>
                   <Button 
                     onClick={() => setIsRejecting(false)} 
                     color="inherit" 
                     variant="text"
+                    disabled={isVerifying}
                     sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
                   >
                     Wait, go back
@@ -416,10 +422,11 @@ export default function VerifySlips() {
                     onClick={() => handleVerify('Rejected')} 
                     color="error"
                     variant="contained"
-                    disabled={rejectReason.trim() === ''}
+                    disabled={rejectReason.trim() === '' || isVerifying}
+                    startIcon={isVerifying ? <Loader2 size={18} className="animate-spin" /> : null}
                     sx={{ borderRadius: 2, textTransform: 'none', px: 4 }}
                   >
-                    Confirm Rejection
+                    {isVerifying ? 'Processing...' : 'Confirm Rejection'}
                   </Button>
                 </>
               )}
