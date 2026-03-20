@@ -25,6 +25,18 @@ const userSchema = new mongoose.Schema({
         minlength: 6,
         select: false // Automatically hide password in queries unless explicitly requested
     },
+    profilePic: {
+        type: String,
+        default: ''
+    },
+    phone: { 
+        type: String, 
+        default: '' 
+    },
+    bio: { 
+        type: String, 
+        default: '' 
+    },
     role: { 
         type: String, 
         enum: ['Student', 'SocietyAdmin', 'SuperAdmin'], 
@@ -34,6 +46,14 @@ const userSchema = new mongoose.Schema({
     adminSocieties: [{ 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'Society' 
+    }],
+    leadershipHistory: [{
+        society: { type: mongoose.Schema.Types.ObjectId, ref: 'Society' },
+        societyName: { type: String, required: true }, 
+        role: { type: String, required: true }, 
+        startDate: { type: Date, default: Date.now },
+        endDate: { type: Date, default: null },
+        status: { type: String, enum: ['Active', 'Completed', 'Revoked'], default: 'Active' }
     }]
 }, { timestamps: true });
 
