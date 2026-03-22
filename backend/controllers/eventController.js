@@ -138,3 +138,28 @@ exports.getEventAttendees = async (req, res) => {
     }
 };
 
+// @desc    Delete an event
+// @route   DELETE /api/events/:id
+// @access  Private (SocietyAdmin)
+exports.deleteEvent = async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const bookingCount = await Booking.countDocuments({ event: eventId });
+
+        if (bookingCount > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Cannot delete this event since there are ${bookingCount} existing bookings for it.` 
+            });
+        }
+
+        const event = await Event.findById(eventId);
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+
+        await event.deleteOne();
+        res.status(200).json({ success: true, message: 'Event successfully deleted.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
