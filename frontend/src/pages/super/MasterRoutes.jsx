@@ -29,6 +29,7 @@ export default function MasterRoutes() {
   const [routes, setRoutes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState({ open: false, id: null });
   
   const [formData, setFormData] = useState({
     destination: '',
@@ -111,8 +112,13 @@ export default function MasterRoutes() {
     }
   };
 
-  const handleDelete = async (id) => {
-      if (!window.confirm("Are you sure you want to delete this global route?")) return;
+  const requestDelete = (id) => {
+      setDeleteConfirmDialog({ open: true, id });
+  };
+
+  const confirmDelete = async () => {
+      const id = deleteConfirmDialog.id;
+      setDeleteConfirmDialog({ open: false, id: null });
 
       try {
           const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
@@ -196,7 +202,7 @@ export default function MasterRoutes() {
                     </TableCell>
                     <TableCell align="right">
                       <IconButton size="small" onClick={() => handleOpenEdit(row)} sx={{ color: '#053668', mr: 1 }}><Edit2 size={18} /></IconButton>
-                      <IconButton size="small" onClick={() => handleDelete(row._id)} color="error"><Trash2 size={18} /></IconButton>
+                      <IconButton size="small" onClick={() => requestDelete(row._id)} color="error"><Trash2 size={18} /></IconButton>
                     </TableCell>
                   </TableRow>
                 ))
@@ -250,6 +256,37 @@ export default function MasterRoutes() {
         </DialogActions>
       </Dialog>
       
+      {/* Delete Confirmation Dialog */}
+      <Dialog 
+        open={deleteConfirmDialog.open} 
+        onClose={() => setDeleteConfirmDialog({ open: false, id: null })}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#dc2626', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ShieldAlert size={20}/> Confirm Route Deletion
+        </DialogTitle>
+        <DialogContent dividers>
+            <Typography variant="body1" className="mb-3 text-gray-800 font-medium">
+               Are you absolutely sure you want to delete this global shuttle route?
+            </Typography>
+            <div className="bg-red-50 p-3 rounded-lg border border-red-100 flex gap-3 mt-4">
+                <ShieldAlert className="text-red-500 shrink-0 mt-0.5" size={18} />
+                <Typography variant="body2" className="text-red-800">
+                    <strong>Note:</strong> Deleting this route will completely remove it as an option for <em>future</em> events. Existing events that have already been created and assigned this route will <strong>not</strong> be affected, protecting scheduled bookings.
+                </Typography>
+            </div>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button onClick={() => setDeleteConfirmDialog({ open: false, id: null })} color="inherit" sx={{ textTransform: 'none', fontWeight: 'bold' }}>
+                Cancel
+            </Button>
+            <Button onClick={confirmDelete} variant="contained" color="error" sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}>
+                Confirm Delete
+            </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
         <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
             {snackbar.message}
