@@ -59,4 +59,17 @@ const societySchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
+// Virtual for Events Hosted (Count of events associated with this society)
+societySchema.virtual('eventsHosted', {
+    ref: 'Event',
+    localField: '_id',
+    foreignField: 'society',
+    count: true
+});
+
+// Virtual for Active Admins (Count of board members)
+societySchema.virtual('activeAdmins').get(function() {
+    return this.board ? this.board.length : 0;
+});
+
 module.exports = mongoose.model('Society', societySchema);

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Filter, Calendar, MapPin, Clock, Loader2 } from 'lucide-react';
+import { Search, Filter, Calendar, MapPin, Clock, Loader2, Phone } from 'lucide-react';
+import { Snackbar, Alert } from '@mui/material';
 
 export default function BrowseEvents() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const navigate = useNavigate();
   
   const categories = ['All', 'Technology', 'Musical', 'Cultural', 'Sport', 'Religion'];
 
@@ -27,6 +30,21 @@ export default function BrowseEvents() {
   }, []);
 
   const filteredEvents = events.filter(event => {
+    const now = new Date();
+    // Adjust to local time string, or just use string construction safely.
+    // Better to use local values to match the user's timezone where possible
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTimeStr = `${hours}:${minutes}`;
+
+    if (event.date < todayStr) return false; // Hide expired dates
+    if (event.date === todayStr && event.time < currentTimeStr) return false; // Hide expired times today
+
     const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
@@ -36,6 +54,15 @@ export default function BrowseEvents() {
     
     return matchesCategory && matchesSearch;
   });
+
+  const handleBookClick = (eventId) => {
+      const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      if (!currentUser.phone) {
+          setSnackbar({ open: true, message: 'Please update your profile with a valid phone number before booking tickets. Organizers need this for emergency logistics.', severity: 'warning' });
+          return;
+      }
+      navigate(`/events/book/${eventId}`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
@@ -144,12 +171,12 @@ export default function BrowseEvents() {
                             🔥 Only {remaining} {remaining === 1 ? 'seat' : 'seats'} left!
                           </p>
                         )}
-                        <Link
-                          to={`/events/book/${event._id}`}
+                        <button
+                          onClick={() => handleBookClick(event._id)}
                           className="w-full flex items-center justify-center py-2.5 bg-blue-50 hover:bg-sliit-blue text-sliit-blue hover:text-white rounded-xl font-bold transition-colors"
                         >
                           View & Book Ticket
-                        </Link>
+                        </button>
                       </>
                     );
                   })()}
@@ -160,6 +187,12 @@ export default function BrowseEvents() {
           ))}
         </div>
       )}
+      
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

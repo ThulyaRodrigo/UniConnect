@@ -47,6 +47,7 @@ exports.registerUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                profilePic: user.profilePic || '',
                 adminSocieties: user.adminSocieties,
                 token: generateToken(user._id),
             });
@@ -80,6 +81,7 @@ exports.loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                profilePic: user.profilePic || '',
                 adminSocieties: user.adminSocieties, // Frontend uses this for the dropdown
                 token: generateToken(user._id),
             });

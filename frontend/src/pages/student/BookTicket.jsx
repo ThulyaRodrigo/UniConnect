@@ -9,6 +9,7 @@ import {
 export default function BookTicket() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
+  const [societyDetails, setSocietyDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // Dynamic Group Booking State
@@ -34,12 +35,19 @@ export default function BookTicket() {
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        // 1. Fetch the Event Details
+        // Fetch the Event Details
         const eventRes = await axios.get(`http://localhost:5001/api/events`); 
         const foundEvent = eventRes.data.data.find(e => e._id === eventId);
         setEvent(foundEvent);
+        
+        // Fetch society's bank account explicitly relying on the settings API
+        if (foundEvent && foundEvent.society && foundEvent.society._id) {
+             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+             const societyRes = await axios.get(`http://localhost:5001/api/societies/${foundEvent.society._id}/settings`, config);
+             setSocietyDetails(societyRes.data.data);
+        }
 
-        // 2. Fetch the Transport Routes for this specific event
+        // Fetch the Transport Routes for this specific event
         const transportRes = await axios.get(`http://localhost:5001/api/transports/event/${eventId}`);
         setTransportOptions(transportRes.data.data);
 
@@ -214,7 +222,7 @@ export default function BookTicket() {
         {/* LEFT COLUMN: Main Info & Attendee selection */}
         <div className="w-full lg:w-2/3 space-y-8">
           
-          {/* 1. Header & Image */}
+          {/* Header & Image */}
           <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="h-64 sm:h-80 w-full relative bg-gray-100">
               <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
@@ -264,7 +272,7 @@ export default function BookTicket() {
             </div>
           </div>
 
-          {/* 2. Attendee Logistics Section */}
+          {/* Attendee Logistics Section */}
           <div className="bg-white p-8 lg:p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-8 gap-6 border-b border-gray-100 pb-8">
               <div>
@@ -424,26 +432,39 @@ export default function BookTicket() {
 
             {event.price > 0 && (
               <div className="space-y-8 mt-2">
-                <div className="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-blue-200/50 rounded-full blur-xl -mr-6 -mt-6"></div>
-                  <h4 className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Bank Transfer Details
-                  </h4>
-                  <div className="space-y-2">
-                    <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                      <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Bank</span> 
-                      <strong className="font-bold">Commercial Bank</strong>
-                    </p>
-                    <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                      <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Account No</span> 
-                      <strong className="font-mono bg-white border border-blue-200 px-2 py-0.5 rounded text-blue-900 font-bold shadow-sm">8900 3456 1123</strong>
-                    </p>
-                    <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                      <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Name</span> 
-                      <strong className="font-bold">{event.society?.name || 'Society Account'}</strong>
-                    </p>
-                  </div>
-                </div>
+                
+                {societyDetails && societyDetails.bankAccounts && societyDetails.bankAccounts.length > 0 ? (
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-3 flex items-center gap-1.5 ml-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Supported Banks
+                        </h4>
+                        
+                        {societyDetails.bankAccounts.map((bank, index) => (
+                           <div key={index} className="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl relative overflow-hidden">
+                             <div className="absolute top-0 right-0 w-16 h-16 bg-blue-200/50 rounded-full blur-xl -mr-6 -mt-6"></div>
+                             <div className="space-y-2">
+                               <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                                 <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Bank Name</span> 
+                                 <strong className="font-bold">{bank.bankName}</strong>
+                               </p>
+                               <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                                 <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Account No</span> 
+                                 <strong className="font-mono bg-white border border-blue-200 px-2 py-0.5 rounded text-blue-900 font-bold shadow-sm">{bank.accNo}</strong>
+                               </p>
+                               <p className="text-sm text-blue-900 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                                 <span className="text-blue-700 font-semibold mb-0.5 sm:mb-0">Account Name</span> 
+                                 <strong className="font-bold max-w-[200px] truncate text-right">{bank.accName}</strong>
+                               </p>
+                             </div>
+                           </div>
+                        ))}
+                    </div>
+                ) : (
+                   <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-2xl flex flex-col items-center justify-center text-center">
+                        <span className="text-orange-500 font-bold text-sm">No bank accounts registered by this society.</span>
+                        <span className="text-orange-400 text-xs mt-1">Please reach out to the organizers directly for manual payment instructions.</span>
+                   </div>
+                )}
 
                 <div>
                   <label className="flex items-center justify-between text-[11px] font-black text-gray-500 uppercase tracking-widest mb-3">

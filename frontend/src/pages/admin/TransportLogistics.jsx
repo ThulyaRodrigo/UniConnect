@@ -55,10 +55,10 @@ export default function TransportLogistics() {
 
       // Generate CSV
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "Student ID,Name\n"; // Header
+      csvContent += "Student ID,Name,Phone Number\n"; // Header
       
       attendees.forEach((row) => {
-          csvContent += `"${row.studentId}","${row.name}"\n`;
+          csvContent += `"${row.studentId}","${row.name}","${row.phone || 'N/A'}"\n`;
       });
 
       const encodedUri = encodeURI(csvContent);

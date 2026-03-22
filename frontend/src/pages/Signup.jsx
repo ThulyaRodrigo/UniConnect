@@ -42,6 +42,23 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
+    const itRegex = /^(it|IT)\d{8}$/;
+    if (!itRegex.test(formData.studentId)) {
+        setError('Student ID must start with IT and contain exactly 10 characters.');
+        return;
+    }
+
+    const expectedEmail = `${formData.studentId.toLowerCase()}@my.sliit.lk`;
+    if (formData.email.toLowerCase() !== expectedEmail) {
+        setError(`University Email must match your IT Number exactly: ${expectedEmail}`);
+        return;
+    }
+
+    if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters long.');
+        return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match. Please try again.');
       return;
@@ -200,6 +217,28 @@ export default function Signup() {
                   {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
+              
+              {formData.password && (() => {
+                let score = 0;
+                if (formData.password.length >= 8) score += 1;
+                if (/[A-Z]/.test(formData.password)) score += 1;
+                if (/\d/.test(formData.password)) score += 1;
+                if (/[^A-Za-z0-9]/.test(formData.password)) score += 1;
+                
+                let strength = { label: 'Low', color: 'bg-red-500', text: 'text-red-500', width: '25%' };
+                if (score === 2) strength = { label: 'Medium', color: 'bg-orange-500', text: 'text-orange-500', width: '50%' };
+                if (score === 3) strength = { label: 'Good', color: 'bg-yellow-500', text: 'text-yellow-500', width: '75%' };
+                if (score >= 4) strength = { label: 'Strong', color: 'bg-green-500', text: 'text-green-500', width: '100%' };
+
+                return (
+                 <div className="mt-3">
+                   <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                     <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: strength.width }}></div>
+                   </div>
+                   <p className={`text-xs mt-1.5 font-bold ${strength.text}`}>Password Strength: {strength.label}</p>
+                 </div>
+                );
+              })()}
             </div>
 
             <div>
