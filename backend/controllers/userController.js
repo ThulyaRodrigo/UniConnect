@@ -29,7 +29,28 @@ exports.getUserProfile = async (req, res) => {
         const user = await User.findById(req.user._id).populate('adminSocieties', 'name category');
         if (!user) return res.status(404).json({ message: 'User not found' });
         
-        res.status(200).json({ success: true, data: user });
+        // Fetch active board positions dynamically from actual native Society models
+        const societies = await Society.find({ 'board.user': user._id }).select('name board');
+        
+        let activeBoardRoles = [];
+        societies.forEach(soc => {
+            const member = soc.board.find(b => b.user.toString() === user._id.toString());
+            if (member) {
+                activeBoardRoles.push({
+                    _id: soc._id.toString() + member._id.toString(),
+                    societyName: soc.name,
+                    role: member.position,
+                    status: 'Active',
+                    startDate: user.createdAt, // Fallback start date for UI representation
+                });
+            }
+        });
+        
+        // Deep clone model strictly returning explicit properties mapped above for clean JSON extraction
+        const userData = user.toObject();
+        userData.activeBoardRoles = activeBoardRoles;
+
+        res.status(200).json({ success: true, data: userData });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
