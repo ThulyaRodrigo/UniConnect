@@ -519,7 +519,25 @@ export default function ManageEvents() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      
+      <Dialog open={deleteDialogOpen} onClose={() => !isDeleting && setDeleteDialogOpen(false)}>
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#dc2626' }}>Delete Event</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete <strong>{eventToDelete?.title}</strong>? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting} sx={{ color: '#64748b' }}>Cancel</Button>
+          <Button 
+            onClick={confirmDelete} 
+            color="error" 
+            variant="contained" 
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar 
         open={snackbar.open} 
