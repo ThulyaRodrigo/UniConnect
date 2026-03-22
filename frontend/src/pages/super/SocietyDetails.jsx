@@ -1,63 +1,144 @@
-import { Paper, Typography, Box, Button, Chip, Divider, Grid, List, Avatar, TextField, MenuItem, IconButton, Tooltip } from '@mui/material';
-import { Shield, Mail, Calendar, Trash2, ArrowLeft, Edit2, Save, X, TrendingUp, Users as UsersIcon, CreditCard, Activity, Globe, Info } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Paper, Typography, Box, Button, Chip, Grid, Avatar, TextField, MenuItem, IconButton, Tooltip, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { Shield, Mail, Calendar, Trash2, ArrowLeft, Edit2, Save, X, TrendingUp, Users as UsersIcon, CreditCard, Activity, Globe, Info, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function SocietyDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   
-  // Mock Initial Data (In real app, fetch by id)
-  const [society, setSociety] = useState({
-    id: id || 'SOC-01',
-    name: 'FOSS SLIIT',
-    category: 'Technology',
-    description: 'The Free and Open Source Software Society of SLIIT, dedicated to promoting open-source culture and collaborative development.',
-    email: 'foss@sliit.lk',
-    website: 'https://foss.sliit.lk',
-    currentEvents: 3,
-    totalRevenue: 'LKR 125,000',
-    pendingApprovals: 3,
-    board: [
-      { id: 1, name: 'Kasun Bandara', role: 'President', email: 'kasun.b@sliit.lk', avatar: 'K' },
-      { id: 2, name: 'Thulya Rodrigo', role: 'Secretary', email: 'thulya.r@sliit.lk', avatar: 'T' },
-      { id: 3, name: 'Lakmal Siriwardena', role: 'Treasurer', email: 'lakmal.s@sliit.lk', avatar: 'L' }
-    ],
-    recentEvents: [
-      { id: 101, title: 'Python Competitive Meetup', date: 'March 15, 2026', status: 'Completed', turnout: 85 },
-      { id: 102, title: 'Open Source Workshop', date: 'Feb 28, 2026', status: 'Completed', turnout: 120 },
-      { id: 103, title: 'Hacktoberfest Recap', date: 'Nov 10, 2025', status: 'Completed', turnout: 200 }
-    ]
-  });
-
+  // Deletion States
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Real Data States
+  const [society, setSociety] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [societyEvents, setSocietyEvents] = useState([]);
+  
   const categories = ['Technology', 'Musical', 'Cultural', 'Sport', 'Religion'];
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // In real app, API call here
+  const fetchSocietyData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+      
+      // Fetch Society Details AND All Events simultaneously
+      const [societyRes, eventsRes] = await Promise.all([
+        axios.get(`http://localhost:5001/api/societies/${id}/settings`, config),
+        axios.get(`http://localhost:5001/api/events`) // Public endpoint
+      ]);
+
+      const fetchedSociety = societyRes.data.data;
+      setSociety(fetchedSociety);
+      setEditForm({
+        name: fetchedSociety.name || '',
+        category: fetchedSociety.category || '',
+        description: fetchedSociety.description || '',
+        email: fetchedSociety.email || '',
+        website: fetchedSociety.website || ''
+      });
+
+      // Filter events belonging only to this society
+      const filteredEvents = eventsRes.data.data.filter(e => e.society?._id === id || e.society === id);
+      
+      // Sort by date descending (newest first)
+      filteredEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setSocietyEvents(filteredEvents);
+
+    } catch (error) {
+      console.error("Error fetching society details:", error);
+      setSnackbar({ open: true, message: 'Failed to load society details', severity: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchSocietyData();
+  }, [fetchSocietyData]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+      
+      const res = await axios.put(`http://localhost:5001/api/societies/${id}/settings`, editForm, config);
+      
+      setSociety(res.data.data);
+      setIsEditing(false);
+      setSnackbar({ open: true, message: 'Society profile updated successfully!', severity: 'success' });
+    } catch (error) {
+      setSnackbar({ open: true, message: error.response?.data?.message || 'Failed to update society', severity: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleChange = (field, value) => {
-    setSociety({ ...society, [field]: value });
+  const handleDelete = async () => {
+    if (deleteConfirmName !== society.name) return;
+    
+    setIsDeleting(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+      await axios.delete(`http://localhost:5001/api/societies/${id}`, config);
+      
+      setSnackbar({ open: true, message: 'Society deactivated successfully', severity: 'success' });
+      setTimeout(() => {
+        navigate('/super/societies');
+      }, 1500);
+    } catch (error) {
+      setSnackbar({ open: true, message: error.response?.data?.message || 'Failed to deactivate society', severity: 'error' });
+      setIsDeleteDialogOpen(false);
+      setDeleteConfirmName('');
+    } finally {
+      setIsDeleting(false);
+    }
   };
+
+
+  const handleChange = (field, value) => {
+    setEditForm({ ...editForm, [field]: value });
+  };
+
+  if (isLoading) return <div className="flex justify-center items-center h-[60vh]"><Loader2 className="animate-spin h-10 w-10 text-sliit-blue" /></div>;
+  if (!society) return <div className="text-center text-gray-500 mt-20">Society not found.</div>;
+
+  // --- Calculate Analytics ---
+  const now = new Date();
+  const currentEvents = societyEvents.filter(e => new Date(e.date) >= now);
+  const pastEvents = societyEvents.filter(e => new Date(e.date) < now);
+  // (In a real app, revenue and approvals would come from a dedicated /analytics endpoint hitting the Bookings model)
+  const totalRevenue = 'LKR ---'; 
+  const pendingApprovals = '---';
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
           <Link to="/super/societies" className="inline-flex items-center text-gray-500 hover:text-sliit-blue transition-colors font-medium mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" /> Back to Societies
           </Link>
           <div className="flex items-center gap-4">
-            <Avatar sx={{ width: 64, height: 64, fontSize: '1.5rem', fontWeight: 'bold', bgcolor: '#053668' }}>
-              {society.name.substring(0, 1)}
+            <Avatar 
+                src={society.logo} 
+                sx={{ width: 64, height: 64, fontSize: '1.5rem', fontWeight: 'bold', bgcolor: '#053668', border: '2px solid #e5e7eb' }}
+            >
+              {!society.logo && society.name.substring(0, 1)}
             </Avatar>
             <div>
               <h1 className="text-3xl font-black text-gray-900 flex items-center gap-3">
                 {society.name} 
                 <Chip label={society.category} size="small" sx={{ fontWeight: 700, backgroundColor: '#eff6ff', color: '#1d4ed8' }} />
               </h1>
-              <p className="text-gray-500 font-medium">Unique ID: {society.id}</p>
+              <p className="text-gray-500 font-medium">Unique ID: {society._id}</p>
             </div>
           </div>
         </div>
@@ -78,23 +159,38 @@ export default function SocietyDetails() {
                 variant="outlined" 
                 color="inherit" 
                 startIcon={<X size={18} />} 
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                    setIsEditing(false);
+                    // Revert form back to original data
+                    setEditForm({
+                        name: society.name, category: society.category, description: society.description,
+                        email: society.email, website: society.website
+                    });
+                }}
+                disabled={isSaving}
                 sx={{ textTransform: 'none', borderRadius: 3, fontWeight: 700, px: 2 }}
               >
                 Cancel
               </Button>
               <Button 
                 variant="contained" 
-                startIcon={<Save size={18} />} 
+                startIcon={isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} 
                 onClick={handleSave}
+                disabled={isSaving}
                 sx={{ backgroundColor: '#053668', textTransform: 'none', borderRadius: 3, fontWeight: 700, px: 3 }}
               >
-                Save Changes
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
             </>
           )}
           <Tooltip title="Dangerous Action">
-            <IconButton color="error" sx={{ border: '1px solid #fee2e2', borderRadius: 3 }}>
+            <IconButton color="error" sx={{ border: '1px solid #fee2e2', borderRadius: 3 }} onClick={() => {
+              if (currentEvents.length > 0) {
+                setSnackbar({ open: true, message: `Cannot deactivate society. There are ${currentEvents.length} upcoming events.`, severity: 'warning' });
+              } else {
+                setIsDeleteDialogOpen(true);
+              }
+            }}>
               <Trash2 size={18} />
             </IconButton>
           </Tooltip>
@@ -104,10 +200,10 @@ export default function SocietyDetails() {
       {/* Analytics Overview Section */}
       <Grid container spacing={3}>
         {[
-          { label: 'Current Events', value: society.currentEvents, icon: UsersIcon, color: '#3b82f6', bg: '#eff6ff' },
-          { label: 'Funds Collected', value: society.totalRevenue, icon: CreditCard, color: '#10b981', bg: '#ecfdf5' },
-          { label: 'Pending Approvals', value: society.pendingApprovals, icon: Activity, color: '#f59e0b', bg: '#fffbeb' },
-          { label: 'Engagement Rate', value: '78%', icon: TrendingUp, color: '#8b5cf6', bg: '#f5f3ff' },
+          { label: 'Upcoming Events', value: currentEvents.length, icon: UsersIcon, color: '#3b82f6', bg: '#eff6ff' },
+          { label: 'Past Events', value: pastEvents.length, icon: Activity, color: '#f59e0b', bg: '#fffbeb' },
+          { label: 'Funds Collected', value: totalRevenue, icon: CreditCard, color: '#10b981', bg: '#ecfdf5' },
+          { label: 'Pending Bookings', value: pendingApprovals, icon: TrendingUp, color: '#8b5cf6', bg: '#f5f3ff' },
         ].map((stat, i) => (
           <Grid item xs={12} sm={6} lg={3} key={i}>
             <Paper elevation={0} sx={{ p: 3, border: '1px solid #f1f5f9', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 2.5 }}>
@@ -138,21 +234,25 @@ export default function SocietyDetails() {
                 <div className="space-y-6">
                   <div>
                     <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Description</Typography>
-                    <Typography variant="body1" sx={{ color: '#334155', mt: 1, lineHeight: 1.6 }}>{society.description}</Typography>
+                    <Typography variant="body1" sx={{ color: '#334155', mt: 1, lineHeight: 1.6 }}>
+                        {society.description || <span className="text-gray-400 italic">No description provided.</span>}
+                    </Typography>
                   </div>
                   <Grid container spacing={3}>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Official Email</Typography>
                       <div className="flex items-center gap-2 mt-1">
                         <Mail size={16} className="text-gray-400" />
-                        <Typography variant="body2" fontWeight="600">{society.email}</Typography>
+                        <Typography variant="body2" fontWeight="600">{society.email || 'N/A'}</Typography>
                       </div>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Website</Typography>
                       <div className="flex items-center gap-2 mt-1">
                         <Globe size={16} className="text-gray-400" />
-                        <Typography variant="body2" fontWeight="600">{society.website}</Typography>
+                        <Typography variant="body2" fontWeight="600">
+                            {society.website ? <a href={society.website} target="_blank" rel="noreferrer" className="text-sliit-blue hover:underline">{society.website}</a> : 'N/A'}
+                        </Typography>
                       </div>
                     </Grid>
                   </Grid>
@@ -162,7 +262,7 @@ export default function SocietyDetails() {
                   <TextField 
                     label="Society Name" 
                     fullWidth 
-                    value={society.name} 
+                    value={editForm.name} 
                     onChange={(e) => handleChange('name', e.target.value)} 
                     variant="outlined" 
                   />
@@ -170,7 +270,7 @@ export default function SocietyDetails() {
                     select 
                     label="Category" 
                     fullWidth 
-                    value={society.category} 
+                    value={editForm.category} 
                     onChange={(e) => handleChange('category', e.target.value)}
                   >
                     {categories.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
@@ -180,20 +280,20 @@ export default function SocietyDetails() {
                     multiline 
                     rows={4} 
                     fullWidth 
-                    value={society.description} 
+                    value={editForm.description} 
                     onChange={(e) => handleChange('description', e.target.value)} 
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <TextField 
                       label="Email" 
                       fullWidth 
-                      value={society.email} 
+                      value={editForm.email} 
                       onChange={(e) => handleChange('email', e.target.value)} 
                     />
                     <TextField 
                       label="Website" 
                       fullWidth 
-                      value={society.website} 
+                      value={editForm.website} 
                       onChange={(e) => handleChange('website', e.target.value)} 
                     />
                   </div>
@@ -206,19 +306,29 @@ export default function SocietyDetails() {
                 <Calendar size={20} className="text-sliit-orange" /> Event Performance
               </Typography>
               <div className="space-y-4">
-                {society.recentEvents.map((event) => (
-                  <div key={event.id} className="group flex justify-between items-center p-4 hover:bg-gray-50 rounded-2xl border border-transparent hover:border-gray-100 transition-all">
-                    <div>
-                      <Typography fontWeight="700" color="#1e293b">{event.title}</Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {event.date} • {event.turnout} students attended
-                      </Typography>
+                {societyEvents.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">No events created by this society yet.</Typography>
+                ) : (
+                    societyEvents.slice(0, 3).map((event) => (
+                    <div key={event._id} className="group flex justify-between items-center p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:border-gray-200 transition-all">
+                        <div className="overflow-hidden pr-4">
+                            <Typography fontWeight="700" color="#1e293b" noWrap>{event.title}</Typography>
+                            <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {new Date(event.date).toLocaleDateString()} • {event.location}
+                            </Typography>
+                        </div>
+                        <Chip 
+                            label={new Date(event.date) >= now ? 'Upcoming' : 'Completed'} 
+                            size="small" 
+                            sx={{ fontWeight: 600, bgcolor: new Date(event.date) >= now ? '#eff6ff' : '#f1f5f9', color: new Date(event.date) >= now ? '#1d4ed8' : '#475569' }} 
+                        />
                     </div>
-                    <Chip label={event.status} size="small" sx={{ fontWeight: 600, bgcolor: '#f1f5f9', color: '#475569' }} />
-                  </div>
-                ))}
+                    ))
+                )}
               </div>
-              <Button fullWidth sx={{ mt: 3, textTransform: 'none', color: '#64748b', fontWeight: 600 }}>View All Past Events</Button>
+              {societyEvents.length > 3 && (
+                  <Button fullWidth sx={{ mt: 3, textTransform: 'none', color: '#64748b', fontWeight: 600 }}>View All Events</Button>
+              )}
             </Paper>
           </div>
         </Grid>
@@ -234,23 +344,41 @@ export default function SocietyDetails() {
             </div>
             
             <div className="space-y-4">
-              {society.board.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <Avatar sx={{ bgcolor: '#e2e8f0', color: '#475569', fontWeight: 'bold', width: 44, height: 44 }}>
-                      {member.avatar}
-                    </Avatar>
-                    <div>
-                      <Typography fontWeight="800" sx={{ fontSize: '0.95rem' }}>{member.name}</Typography>
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <Mail size={12}/>
-                        <Typography variant="caption" fontWeight="500">{member.email}</Typography>
-                      </div>
+              {!society.board || society.board.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+                      No executive board members assigned.
+                  </Typography>
+              ) : (
+                  society.board.map((member) => (
+                    <div key={member._id} className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <Avatar src={member.user?.profilePic} sx={{ bgcolor: '#e2e8f0', color: '#475569', fontWeight: 'bold', width: 44, height: 44 }}>
+                            {!member.user?.profilePic && (member.user?.name ? member.user.name.substring(0, 2).toUpperCase() : '?')}
+                        </Avatar>
+                        <div className="overflow-hidden">
+                            <Typography fontWeight="800" sx={{ fontSize: '0.95rem' }} noWrap>{member.user?.name || 'Unknown User'}</Typography>
+                            <div className="flex items-center gap-1.5 text-gray-500">
+                                <Mail size={12} className="shrink-0"/>
+                                <Typography variant="caption" fontWeight="500" noWrap>{member.user?.email}</Typography>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <Chip label={member.role} size="small" sx={{ fontWeight: 700, fontSize: '0.7rem', height: 24, bgcolor: member.role === 'President' ? '#fff7ed' : '#f0f9ff', color: member.role === 'President' ? '#c2410c' : '#0369a1' }} />
-                </div>
-              ))}
+                    <Chip 
+                        label={member.position} 
+                        size="small" 
+                        sx={{ 
+                            fontWeight: 700, 
+                            fontSize: '0.7rem', 
+                            height: 24, 
+                            bgcolor: member.position === 'President' ? '#fff7ed' : '#f0f9ff', 
+                            color: member.position === 'President' ? '#c2410c' : '#0369a1',
+                            ml: 2,
+                            shrink: 0
+                        }} 
+                    />
+                    </div>
+                  ))
+              )}
             </div>
 
             <div className="mt-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
@@ -262,6 +390,41 @@ export default function SocietyDetails() {
           </Paper>
         </Grid>
       </Grid>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%', borderRadius: 2 }}>{snackbar.message}</Alert>
+      </Snackbar>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onClose={() => !isDeleting && setIsDeleteDialogOpen(false)}>
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#dc2626' }}>Deactivate Society</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            This action will deactivate the society. To confirm, please type the full name of the society (<strong>{society.name}</strong>).
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Type Society Name"
+            fullWidth
+            variant="outlined"
+            value={deleteConfirmName}
+            onChange={(e) => setDeleteConfirmName(e.target.value)}
+            disabled={isDeleting}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting} sx={{ color: '#64748b' }}>Cancel</Button>
+          <Button 
+            onClick={handleDelete} 
+            color="error" 
+            variant="contained" 
+            disabled={deleteConfirmName !== society.name || isDeleting}
+          >
+            {isDeleting ? 'Deactivating...' : 'Deactivate'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
