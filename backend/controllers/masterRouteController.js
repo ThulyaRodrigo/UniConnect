@@ -118,7 +118,8 @@ exports.getRouteManifest = async (req, res) => {
 
         // Fetch bookings for this event that include this route
         const bookings = await Booking.find({ event: eventId })
-            .select('attendees')
+            .populate('primaryBuyer', 'phone')
+            .select('attendees primaryBuyer')
             .lean();
 
         let manifest = [];
@@ -129,7 +130,8 @@ exports.getRouteManifest = async (req, res) => {
                 if (attendee.transportRoute && attendee.transportRoute.toString() === routeId) {
                     manifest.push({
                         studentId: attendee.studentId,
-                        name: attendee.name
+                        name: attendee.name,
+                        phone: booking.primaryBuyer?.phone || 'N/A'
                     });
                 }
             });
