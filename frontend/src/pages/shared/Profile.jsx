@@ -18,7 +18,7 @@ export default function Profile() {
   const [formData, setFormData] = useState({ name: '', phone: '', bio: '' });
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
-  // 1. Fetch Fresh Profile Data from Backend
+  // Fetch Fresh Profile Data from Backend
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -54,9 +54,20 @@ export default function Profile() {
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handlePasswordChange = (e) => setPasswords({ ...passwords, [e.target.name]: e.target.value });
 
-  // 2. Save Profile Information (Includes Cloudinary Image Upload)
+  // Save Profile Information (Includes Cloudinary Image Upload)
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+
+    if (!formData.name.trim()) {
+        setSnackbar({ open: true, message: 'Full Name cannot be empty!', severity: 'warning' });
+        return;
+    }
+    
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+        setSnackbar({ open: true, message: 'Phone Number must contain exactly 10 numerical digits.', severity: 'warning' });
+        return;
+    }
+
     setIsSaving(true);
     try {
       const config = { 
@@ -86,9 +97,15 @@ export default function Profile() {
     }
   };
 
-  // 3. Save New Password
+  // Save New Password
   const handleSavePassword = async (e) => {
     e.preventDefault();
+    
+    if (passwords.newPassword.length < 8) {
+        setSnackbar({ open: true, message: 'New Password must contain at least 8 characters.', severity: 'warning' });
+        return;
+    }
+
     if (passwords.newPassword !== passwords.confirmPassword) {
         setSnackbar({ open: true, message: 'New passwords do not match!', severity: 'error' });
         return;
@@ -192,15 +209,16 @@ export default function Profile() {
           </div>
 
           {/* REAL Leadership Record */}
+          {currentUser.role !== 'SuperAdmin' && (
           <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6">
             <h3 className="text-base font-black text-gray-900 mb-4 flex items-center gap-2">
                 <Award className="h-5 w-5 text-sliit-orange" /> Leadership Record
             </h3>
             
-            {currentUser.leadershipHistory?.length > 0 ? (
+            {currentUser.activeBoardRoles?.length > 0 ? (
                 <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
                     {/* Sort history so newest is at the top */}
-                    {[...currentUser.leadershipHistory].reverse().map((history) => (
+                    {[...currentUser.activeBoardRoles].reverse().map((history) => (
                         <div key={history._id} className="relative flex items-start gap-4">
                             <div className="absolute left-0 mt-1.5 w-5 h-5 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center z-10">
                                 <div className={`w-1.5 h-1.5 rounded-full ${history.status === 'Active' ? 'bg-blue-500' : history.status === 'Completed' ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -237,6 +255,7 @@ export default function Profile() {
                 </div>
             )}
           </div>
+          )}
 
           <div className="bg-blue-50/60 px-5 py-4 rounded-2xl border border-blue-100 flex gap-3 items-start">
             <ShieldCheck size={18} className="text-sliit-blue shrink-0" />
@@ -281,10 +300,12 @@ export default function Profile() {
                   <Divider />
                 </div>
 
+                {currentUser.role !== 'SuperAdmin' && (
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Short Bio (Optional)</label>
                   <textarea name="bio" rows={4} value={formData.bio} onChange={handleInputChange} placeholder="Tell us a bit about yourself..." className="w-full px-5 py-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-sliit-blue bg-gray-50 text-sm font-medium resize-none transition-all" />
                 </div>
+                )}
 
                 <div className="sm:col-span-2 pt-2">
                   <button type="submit" disabled={isSaving} className="bg-sliit-blue text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 disabled:opacity-70">
