@@ -7,7 +7,7 @@ import {
   Typography, Box, Divider, Tabs, Tab, Select, MenuItem, FormControl, InputLabel,
   TextField, Snackbar, Alert, CircularProgress
 } from '@mui/material';
-import { Bot, CheckCircle, XCircle, FileText, History, Clock, Loader2 } from 'lucide-react';
+import { Bot, CheckCircle, XCircle, FileText, History, Clock, Loader2, Eye } from 'lucide-react';
 
 export default function VerifySlips() {
   const { activeWorkspace } = useOutletContext();
@@ -26,6 +26,8 @@ export default function VerifySlips() {
   // States matching your UI
   const [selectedSlip, setSelectedSlip] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [selectedSummaryRecord, setSelectedSummaryRecord] = useState(null);
+  const [openSummaryModal, setOpenSummaryModal] = useState(false);
   const [tabValue, setTabValue] = useState(0); 
   const [selectedEventFilter, setSelectedEventFilter] = useState('All');
   
@@ -107,6 +109,16 @@ export default function VerifySlips() {
     setSelectedSlip(null);
     setIsRejecting(false);
     setRejectReason('');
+  };
+
+  const handleOpenSummary = (record) => {
+    setSelectedSummaryRecord(record);
+    setOpenSummaryModal(true);
+  };
+
+  const handleCloseSummary = () => {
+    setOpenSummaryModal(false);
+    setSelectedSummaryRecord(null);
   };
 
   const handleTabChange = (event, newValue) => setTabValue(newValue);
@@ -257,6 +269,7 @@ export default function VerifySlips() {
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Reason</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 'bold' }}>Action Date</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -269,9 +282,9 @@ export default function VerifySlips() {
                   <TableCell>{row.event}</TableCell>
                   <TableCell>
                     <Chip 
-                      icon={row.status === 'Approved' ? <CheckCircle size={14} /> : <XCircle size={14} />} 
+                      icon={row.status === 'Confirmed' ? <CheckCircle size={14} /> : <XCircle size={14} />} 
                       label={row.status} 
-                      color={row.status === 'Approved' ? "success" : "error"}
+                      color={row.status === 'Confirmed' ? "success" : "error"}
                       size="small"
                       sx={{ fontWeight: 'bold' }}
                     />
@@ -281,6 +294,17 @@ export default function VerifySlips() {
                   </TableCell>
                   <TableCell align="right" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                     {row.verifiedAt}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button 
+                      variant="outlined" 
+                      size="small"
+                      startIcon={<Eye size={16} />}
+                      onClick={() => handleOpenSummary(row)}
+                      sx={{ borderRadius: 2, textTransform: 'none', color: '#053668', borderColor: '#e5e7eb' }}
+                    >
+                      View
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -296,6 +320,116 @@ export default function VerifySlips() {
           </Table>
         )}
       </TableContainer>
+
+      {/* MUI Dialog (Modal) for the History Summary View */}
+      <Dialog open={openSummaryModal} onClose={handleCloseSummary} maxWidth="md" fullWidth>
+        {selectedSummaryRecord && (
+          <>
+            <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              <div className="flex items-center gap-2">
+                <FileText size={24} className="text-sliit-blue" />
+                Booking Summary: {selectedSummaryRecord.id}
+              </div>
+              <Chip 
+                icon={selectedSummaryRecord.status === 'Confirmed' ? <CheckCircle size={16} /> : <XCircle size={16} />} 
+                label={selectedSummaryRecord.status} 
+                color={selectedSummaryRecord.status === 'Confirmed' ? "success" : "error"}
+                sx={{ fontWeight: 'bold', px: 1, height: 32 }}
+              />
+            </DialogTitle>
+            <Divider />
+            
+            <DialogContent sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, pt: 4 }}>
+              
+              {/* Left Side: The Uploaded Image */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle2" sx={{ mb: 2, color: 'text.secondary', fontWeight: 'bold' }}>
+                  UPLOADED BANK SLIP
+                </Typography>
+                <Box 
+                  component="img"
+                  src={selectedSummaryRecord.slipImage}
+                  alt="Payment Slip"
+                  sx={{ width: '100%', height: 'auto', borderRadius: 2, border: '1px solid #e5e7eb', boxShadow: 1 }}
+                />
+              </Box>
+
+              {/* Right Side: Data Summary */}
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                
+                {/* Basic Details */}
+                <Box sx={{ p: 3, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Typography variant="overline" sx={{ color: '#475569', fontWeight: 'bold' }}>Booking Details</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Student:</Typography>
+                    <Typography variant="body1" fontWeight="medium">{selectedSummaryRecord.studentName}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Event:</Typography>
+                    <Typography variant="body1" fontWeight="medium">{selectedSummaryRecord.event}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Claimed Amount:</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#053668' }}>LKR {selectedSummaryRecord.claimedAmount}</Typography>
+                  </Box>
+                </Box>
+
+                {/* AI Extraction Data */}
+                <Box sx={{ p: 3, bgcolor: '#eff6ff', borderRadius: 2, border: '1px solid #bfdbfe' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Bot size={20} className="text-blue-700" />
+                    <Typography variant="overline" sx={{ color: '#1d4ed8', fontWeight: 'bold' }}>
+                      AI Extracted Data
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Amount Found:</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', color: selectedSummaryRecord.aiExtraction?.amountFound != null ? (selectedSummaryRecord.aiExtraction.amountFound >= selectedSummaryRecord.claimedAmount ? '#166534' : '#dc2626') : 'text.secondary' }}>
+                      {selectedSummaryRecord.aiExtraction?.amountFound != null ? `LKR ${selectedSummaryRecord.aiExtraction.amountFound}` : '—'}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Ref Number:</Typography>
+                    <Typography variant="body1" fontWeight="medium" fontFamily="monospace">{selectedSummaryRecord.aiExtraction?.refFound || '—'}</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary">Confidence:</Typography>
+                    <Chip 
+                      label={selectedSummaryRecord.aiExtraction?.matchConfidence || 'Unknown'} 
+                      color={getConfidenceColor(selectedSummaryRecord.aiExtraction?.matchConfidence)}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Box>
+                </Box>
+
+                {/* Rejection Reason (If Applicable) */}
+                {selectedSummaryRecord.status === 'Rejected' && selectedSummaryRecord.reason && (
+                  <Box sx={{ mt: 'auto', p: 3, bgcolor: '#fef2f2', border: '1px solid #fecaca', borderRadius: 2 }}>
+                    <Typography variant="subtitle2" color="error" fontWeight="bold" mb={1}>
+                      Reason for Rejection
+                    </Typography>
+                    <Typography variant="body2" color="text.primary">
+                      {selectedSummaryRecord.reason}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </DialogContent>
+            
+            <Divider />
+            <DialogActions sx={{ p: 3, justifyContent: 'flex-end' }}>
+              <Button 
+                onClick={handleCloseSummary} 
+                variant="outlined"
+                sx={{ borderRadius: 2, textTransform: 'none', px: 4, color: '#64748b', borderColor: '#cbd5e1' }}
+              >
+                Close Summary
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
       {/* MUI Dialog (Modal) for the split-screen verification */}
       <Dialog open={openModal} onClose={handleClose} maxWidth="md" fullWidth>
