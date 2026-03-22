@@ -42,6 +42,23 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
+    const itRegex = /^(it|IT)\d{8}$/;
+    if (!itRegex.test(formData.studentId)) {
+        setError('Student ID must start with IT and contain exactly 10 characters.');
+        return;
+    }
+
+    const expectedEmail = `${formData.studentId.toLowerCase()}@my.sliit.lk`;
+    if (formData.email.toLowerCase() !== expectedEmail) {
+        setError(`University Email must match your IT Number exactly: ${expectedEmail}`);
+        return;
+    }
+
+    if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters long.');
+        return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match. Please try again.');
       return;
@@ -200,6 +217,8 @@ export default function Signup() {
                   {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                 </button>
               </div>
+              
+              
             </div>
 
             <div>
