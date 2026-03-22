@@ -163,3 +163,87 @@ exports.deleteEvent = async (req, res) => {
     }
 };
 
+// @desc    Update an event
+// @route   PUT /api/events/:id
+// @access  Private (SocietyAdmin)
+exports.updateEvent = async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        let event = await Event.findById(eventId);
+        
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+        
+        // Track changes 
+        const oldData = { ...event.toObject() };
+        
+        const { title, date, time, category, location, price, capacity, description, enableTransport } = req.body;
+        
+        event.title = title || event.title;
+        event.date = date || event.date;
+        event.time = time || event.time;
+        event.category = category || event.category;
+        event.location = location || event.location;
+        event.price = price !== undefined ? price : event.price;
+        event.capacity = capacity || event.capacity;
+        event.description = description || event.description;
+        
+        if (req.file) {
+            event.image = req.file.path; // update image if uploaded
+        }
+
+        await event.save();
+
+        // Check if important details changed that require notifying users
+        const detailsChanged = (oldData.date !== event.date || oldData.time !== event.time || oldData.location !== event.location);
+
+        if (detailsChanged) {
+            const bookings = await Booking.find({ event: eventId, status: { $in: ['Confirmed', 'Pending Verification'] } })
+                .populate('primaryBuyer', 'name email');
+            
+            const uniqueEmails = new Map();
+            bookings.forEach(b => {
+                // Add the primary buyer
+                if (b.primaryBuyer && b.primaryBuyer.email) {
+                    uniqueEmails.set(b.primaryBuyer.email, b.primaryBuyer.name);
+                }
+                
+                // Add all attendees via SLIIT standard email structure
+                if (b.attendees && b.attendees.length > 0) {
+                    b.attendees.forEach(attendee => {
+                        if (attendee.studentId) {
+                            const studentEmail = `${attendee.studentId.toLowerCase()}@my.sliit.lk`;
+                            uniqueEmails.set(studentEmail, attendee.name);
+                        }
+                    });
+                }
+            });
+
+            const emailPromises = Array.from(uniqueEmails.entries()).map(([email, name]) => {
+                return sendTicketEmail({
+                    email: email,
+                    subject: `IMPORTANT: Update for Event - ${event.title}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2>Event Update Notification</h2>
+                            <p>Hi ${name},</p>
+                            <p>The event <strong>${event.title}</strong> that you have tickets for has been updated. Please note the following new details:</p>
+                            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <p><strong>New Date:</strong> ${event.date}</p>
+                                <p><strong>New Time:</strong> ${event.time}</p>
+                                <p><strong>New Location:</strong> ${event.location}</p>
+                            </div>
+                            <p>Your tickets remain valid. If you have any questions, please contact the society organizers.</p>
+                            <p>Best Regards,<br>UniConnect Events</p>
+                        </div>
+                    `
+                });
+            });
+
+            await Promise.allSettled(emailPromises);
+        }
+
+        res.status(200).json({ success: true, data: event, message: 'Event updated successfully.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
