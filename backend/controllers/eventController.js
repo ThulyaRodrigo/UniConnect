@@ -2,6 +2,9 @@ const Event = require('../models/Event');
 const Society = require('../models/Society');
 const MasterRoute = require('../models/MasterRoute');
 const Transport = require('../models/Transport');
+const Booking = require('../models/Booking');
+const User = require('../models/User');
+const sendTicketEmail = require('../utils/emailService');
 
 // @desc    Create a new event
 // @route   POST /api/events
@@ -54,7 +57,24 @@ exports.createEvent = async (req, res) => {
 exports.getSocietyEvents = async (req, res) => {
     try {
         const events = await Event.find({ society: req.params.societyId }).sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data: events });
+
+        // Aggregate confirmed+pending ticket counts per event to attach to response
+        const bookingCounts = await Booking.aggregate([
+            { $match: { status: { $in: ['Confirmed', 'Pending Verification'] } } },
+            { $group: { _id: '$event', bookedCount: { $sum: '$ticketCount' } } }
+        ]);
+
+        // Build a quick lookup map: eventId -> bookedCount
+        const countMap = {};
+        bookingCounts.forEach(b => { countMap[b._id.toString()] = b.bookedCount; });
+
+        // Attach bookedCount to each event
+        const eventsWithAvailability = events.map(event => ({
+            ...event.toObject(),
+            bookedCount: countMap[event._id.toString()] || 0
+        }));
+
+        res.status(200).json({ success: true, data: eventsWithAvailability });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -65,7 +85,6 @@ exports.getSocietyEvents = async (req, res) => {
 // @access  Public
 exports.getAllEvents = async (req, res) => {
     try {
-        const Booking = require('../models/Booking');
         const events = await Event.find().populate('society', 'name category logo').sort({ date: 1 });
 
         // Aggregate confirmed+pending ticket counts per event in one query
@@ -89,3 +108,33 @@ exports.getAllEvents = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get all attendees for a specific event
+// @route   GET /api/events/:id/attendees
+// @access  Private (SocietyAdmin)
+exports.getEventAttendees = async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const bookings = await Booking.find({ event: eventId, status: { $in: ['Confirmed', 'Pending Verification'] } })
+            .populate('primaryBuyer', 'name email phone');
+
+        const attendeesData = [];
+        bookings.forEach(booking => {
+            const isGroup = booking.ticketCount > 1;
+            booking.attendees.forEach(attendee => {
+                attendeesData.push({
+                    studentId: attendee.studentId,
+                    name: attendee.name,
+                    phone: booking.primaryBuyer?.phone || 'N/A',
+                    bookingType: isGroup ? 'Group' : 'Single',
+                    buyerEmail: booking.primaryBuyer?.email || 'N/A'
+                });
+            });
+        });
+
+        res.status(200).json({ success: true, count: attendeesData.length, data: attendeesData });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
