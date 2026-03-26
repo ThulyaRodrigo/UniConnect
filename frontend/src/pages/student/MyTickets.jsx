@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Ticket as TicketIcon, Bus, CheckCircle, Clock, AlertCircle, History, Loader2, XCircle, Download, User, QrCode } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react'; 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -12,8 +12,8 @@ export default function MyTickets() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [isDownloading, setIsDownloading] = useState(''); 
-  
   const [qrModal, setQrModal] = useState({ open: false, ticketRecord: null, eventTitle: '' });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('userInfo'));
@@ -111,6 +111,18 @@ export default function MyTickets() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           
+          {/* Empty State */}
+          {confirmedTickets.length === 0 && pendingTickets.length === 0 && historyTickets.length === 0 && (
+            <div className="text-center py-20 bg-white rounded-3xl border border-gray-200">
+              <TicketIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">You don't have any tickets yet</h3>
+              <p className="text-gray-500 mb-6 max-w-sm mx-auto">Browse upcoming campus events and secure your spot.</p>
+              <button onClick={() => navigate('/events')} className="bg-sliit-blue hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-lg shadow-blue-500/30">
+                Browse Events
+              </button>
+            </div>
+          )}
+
           {/* Confirmed Tickets */}
           {confirmedTickets.length > 0 && (
             <div>
@@ -275,6 +287,7 @@ export default function MyTickets() {
             </div>
         </div>
       </div>
+
 
       {/* QUICK VIEW QR MODAL */}
       <Dialog 
