@@ -55,13 +55,21 @@ export default function BrowseEvents() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleBookClick = (eventId) => {
-      const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      if (!currentUser.phone) {
-          setSnackbar({ open: true, message: 'Please update your profile with a valid phone number before booking tickets. Organizers need this for emergency logistics.', severity: 'warning' });
-          return;
+  const handleBookClick = async (eventId) => {
+      try {
+          const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+          const res = await axios.get('http://localhost:5001/api/users/profile', config);
+          const currentUser = res.data.data || res.data;
+          
+          if (!currentUser.phone) {
+              setSnackbar({ open: true, message: 'Please update your profile with a valid phone number before booking tickets. Organizers need this for emergency logistics.', severity: 'warning' });
+              return;
+          }
+          navigate(`/events/book/${eventId}`);
+      } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setSnackbar({ open: true, message: 'Failed to verify profile. Please try logging in again.', severity: 'error' });
       }
-      navigate(`/events/book/${eventId}`);
   };
 
   return (
