@@ -70,9 +70,15 @@ exports.loginUser = async (req, res) => {
 
         // Find user by email or studentId and explicitly select the password field (since it's hidden by default)
         // Populate the adminSocieties so the frontend workspace switcher has the names ready!
+        // populated 'adminSocieties' makes frontend dropdown ready!
         const user = await User.findOne({ $or: [{ email }, { studentId: email }] })
             .select('+password')
-            .populate('adminSocieties', 'name category'); // Pulls in the Society Name
+            .populate('adminSocieties', 'name category'); 
+
+        // Block login if deactivated
+        if (user && user.isActive === false) {
+            return res.status(403).json({ message: 'Your account has been deactivated. Please contact support(admin@sliit.lk) to reactivate.' });
+        }
 
         // Check password match
         if (user && (await bcrypt.compare(password, user.password))) {
