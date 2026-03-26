@@ -5,6 +5,7 @@ import {
   Laptop, Music, Palette, Trophy, Sparkles, Calendar as CalendarIcon 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Snackbar, Alert } from '@mui/material';
 
 const categoryConfig = {
   'Technology': { icon: Laptop, color: 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600' },
@@ -19,7 +20,25 @@ export default function CalendarView() {
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const navigate = useNavigate();
+
+  const handleBookClick = async (eventId) => {
+      try {
+          const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+          const res = await axios.get('http://localhost:5001/api/users/profile', config);
+          const currentUser = res.data.data || res.data;
+          
+          if (!currentUser.phone) {
+              setSnackbar({ open: true, message: 'Please update your profile with a valid phone number before booking tickets. Organizers need this for emergency logistics.', severity: 'warning' });
+              return;
+          }
+          navigate(`/events/book/${eventId}`);
+      } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setSnackbar({ open: true, message: 'Failed to verify profile. Please try logging in again.', severity: 'error' });
+      }
+  };
 
   // Fetch events
   useEffect(() => {
@@ -107,7 +126,7 @@ export default function CalendarView() {
                       return (
                         <div 
                           key={evt._id} 
-                          onClick={() => navigate(`/events/book/${evt._id}`)}
+                          onClick={() => handleBookClick(evt._id)}
                           className={`flex items-center gap-1.5 px-2 py-1 text-[10px] sm:text-xs rounded-lg border font-bold truncate cursor-pointer hover:text-white transition-all shadow-sm ${color}`}
                           title={`${evt.category}: ${evt.title}`}
                         >
@@ -123,6 +142,12 @@ export default function CalendarView() {
           </div>
         </div>
       )}
+
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
