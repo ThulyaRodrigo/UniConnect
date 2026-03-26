@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
@@ -44,6 +45,35 @@ export default function Layout() {
       navigate('/');
     }
   }, [user, navigate]);
+
+  // Sync profile data on load and listen for local updates
+  useEffect(() => {
+    const syncProfile = async () => {
+      const token = localStorage.getItem('userToken');
+      if (!token) return;
+      try {
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const res = await axios.get('http://localhost:5001/api/users/profile', config);
+        const userData = res.data.data || res.data;
+        const currentStorage = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const updatedStorage = { ...currentStorage, ...userData };
+        localStorage.setItem('userInfo', JSON.stringify(updatedStorage));
+        setUser(updatedStorage);
+      } catch (error) {
+        console.error("Failed to sync profile:", error);
+      }
+    };
+    syncProfile();
+
+    const handleProfileUpdate = () => {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    };
+    window.addEventListener('userProfileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('userProfileUpdated', handleProfileUpdate);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
