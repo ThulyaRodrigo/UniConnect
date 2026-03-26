@@ -86,8 +86,10 @@ export default function Profile() {
       const res = await axios.put('http://localhost:5001/api/users/profile', uploadData, config);
       
       setCurrentUser(res.data.data);
-      // Update local storage so the Top Navigation Bar avatar updates instantly!
-      localStorage.setItem('userInfo', JSON.stringify({ ...JSON.parse(localStorage.getItem('userInfo')), name: res.data.data.name, profilePic: res.data.data.profilePic }));
+      const updatedProfile = res.data.data;
+      const currentStorage = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      localStorage.setItem('userInfo', JSON.stringify({ ...currentStorage, ...updatedProfile }));
+      window.dispatchEvent(new Event('userProfileUpdated'));
       
       setSnackbar({ open: true, message: 'Profile updated successfully!', severity: 'success' });
     } catch (error) {
