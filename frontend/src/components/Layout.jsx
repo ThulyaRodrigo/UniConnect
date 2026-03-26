@@ -231,17 +231,19 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-900">{user.name}</p>
-              <p className="text-xs text-gray-500">{user.role}</p>
-            </div>
-            {user.profilePic ? (
-              <img src={user.profilePic} alt={user.name} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-yellow-100 text-sliit-blue flex items-center justify-center font-bold border border-yellow-200 uppercase">
-                {user.name.charAt(0)}
+            <Link to="/profile" className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.role}</p>
               </div>
-            )}
+              {user.profilePic ? (
+                <img src={user.profilePic} alt={user.name} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-yellow-100 text-sliit-blue flex items-center justify-center font-bold border border-yellow-200 uppercase">
+                  {user.name.charAt(0)}
+                </div>
+              )}
+            </Link>
             <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-600 transition-colors ml-2" title="Logout">
               <LogOut className="h-5 w-5" />
             </button>
