@@ -123,9 +123,25 @@ export default function CalendarView() {
                   <div className="mt-2 space-y-1.5 overflow-hidden">
                     {dayEvents.map((evt) => {
                       const { icon: Icon, color } = categoryConfig[evt.category] || categoryConfig.Default;
-                      return (
-                        <div 
-                          key={evt._id} 
+                      
+                      // Determine if this event is in the past
+                      const now = new Date();
+                      const todayDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                      const nowTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                      const isPast = evt.date < todayDateStr || (evt.date === todayDateStr && evt.time < nowTimeStr);
+
+                      return isPast ? (
+                        <div
+                          key={evt._id}
+                          className="flex items-center gap-1.5 px-2 py-1 text-[10px] sm:text-xs rounded-lg border font-bold truncate bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60"
+                          title={`${evt.title} (Event has ended)`}
+                        >
+                          <Icon className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{evt.title}</span>
+                        </div>
+                      ) : (
+                        <div
+                          key={evt._id}
                           onClick={() => handleBookClick(evt._id)}
                           className={`flex items-center gap-1.5 px-2 py-1 text-[10px] sm:text-xs rounded-lg border font-bold truncate cursor-pointer hover:text-white transition-all shadow-sm ${color}`}
                           title={`${evt.category}: ${evt.title}`}
