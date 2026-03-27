@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { User, Mail, Phone, Lock, Camera, ShieldCheck, KeyRound, Award, CalendarDays, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { Snackbar, Alert, Divider } from '@mui/material';
+import { User, Mail, Phone, Lock, Camera, ShieldCheck, KeyRound, Award, CalendarDays, CheckCircle2, XCircle, Loader2, AlertTriangle } from 'lucide-react';
+import { Snackbar, Alert, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import axios from 'axios';
 
 export default function Profile() {
@@ -17,6 +17,10 @@ export default function Profile() {
   // Form States
   const [formData, setFormData] = useState({ name: '', phone: '', bio: '' });
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+  // Deactivation States
+  const [deactivateModal, setDeactivateModal] = useState(false);
+  const [deactivateReasons, setDeactivateReasons] = useState([]);
 
   // Fetch Fresh Profile Data from Backend
   useEffect(() => {
@@ -86,8 +90,10 @@ export default function Profile() {
       const res = await axios.put('http://localhost:5001/api/users/profile', uploadData, config);
       
       setCurrentUser(res.data.data);
-      // Update local storage so the Top Navigation Bar avatar updates instantly!
-      localStorage.setItem('userInfo', JSON.stringify({ ...JSON.parse(localStorage.getItem('userInfo')), name: res.data.data.name, profilePic: res.data.data.profilePic }));
+      const updatedProfile = res.data.data;
+      const currentStorage = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      localStorage.setItem('userInfo', JSON.stringify({ ...currentStorage, ...updatedProfile }));
+      window.dispatchEvent(new Event('userProfileUpdated'));
       
       setSnackbar({ open: true, message: 'Profile updated successfully!', severity: 'success' });
     } catch (error) {
@@ -122,6 +128,28 @@ export default function Profile() {
       setSnackbar({ open: true, message: error.response?.data?.message || 'Failed to update password', severity: 'error' });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    setIsSaving(true);
+    setDeactivateReasons([]);
+    try {
+        const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+        await axios.put('http://localhost:5001/api/users/profile/deactivate', {}, config);
+        
+        // Success
+        localStorage.clear();
+        window.location.href = '/'; 
+    } catch (error) {
+        if (error.response?.data?.reasons) {
+            setDeactivateReasons(error.response.data.reasons);
+        } else {
+            setSnackbar({ open: true, message: error.response?.data?.message || 'Failed to deactivate account', severity: 'error' });
+            setDeactivateModal(false);
+        }
+    } finally {
+        setIsSaving(false);
     }
   };
 
@@ -193,19 +221,27 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-1.5 flex gap-1">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-1 flex gap-1">
             <button
               onClick={() => setActiveSection('info')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeSection === 'info' ? 'bg-sliit-blue text-white shadow-md shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-1 py-3 rounded-xl text-sm font-bold transition-all ${activeSection === 'info' ? 'bg-sliit-blue text-white shadow-md shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <User size={16} /> Personal
             </button>
             <button
               onClick={() => setActiveSection('security')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeSection === 'security' ? 'bg-gray-900 text-white shadow-md shadow-gray-900/20' : 'text-gray-500 hover:bg-gray-50'}`}
+              className={`flex-1 flex items-center justify-center gap-1 py-3 rounded-xl text-sm font-bold transition-all ${activeSection === 'security' ? 'bg-gray-900 text-white shadow-md shadow-gray-900/20' : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <KeyRound size={16} /> Security
             </button>
+            {currentUser.role !== 'SuperAdmin' && (
+              <button
+                onClick={() => setActiveSection('danger')}
+                className={`flex-1 flex items-center justify-center gap-1 py-3 rounded-xl text-sm font-bold transition-all ${activeSection === 'danger' ? 'bg-red-600 text-white shadow-md shadow-red-500/20' : 'text-gray-500 hover:bg-gray-50 hover:text-red-500'}`}
+              >
+                <AlertTriangle size={16} /> Danger
+              </button>
+            )}
           </div>
 
           {/* REAL Leadership Record */}
@@ -356,12 +392,55 @@ export default function Profile() {
               </form>
             </div>
           )}
+
+          {activeSection === 'danger' && currentUser.role !== 'SuperAdmin' && (
+            <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-red-100">
+              <h3 className="text-2xl font-black text-gray-900 mb-2">Danger Zone</h3>
+              <p className="text-sm text-gray-500 mb-8">This action is permanent and will completely close your account.</p>
+              
+              <div className="p-5 border border-red-100 bg-red-50 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-bold text-red-800">Deactivate Account</h4>
+                  <p className="text-xs text-red-600 font-medium mt-1">You must not have pending ticket bookings or active society roles.</p>
+                </div>
+                <button onClick={() => { setDeactivateModal(true); setDeactivateReasons([]); }} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md shadow-red-500/20 whitespace-nowrap">
+                  Deactivate
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%', borderRadius: 2 }}>{snackbar.message}</Alert>
       </Snackbar>
+
+      <Dialog open={deactivateModal} onClose={() => setDeactivateModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 4, p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 900, color: '#dc2626', pb: 1, fontSize: '1.5rem' }}>Deactivate Account</DialogTitle>
+        <DialogContent sx={{ pb: 1 }}>
+            {deactivateReasons.length > 0 ? (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-xl mt-2">
+                    <p className="font-bold text-red-800 mb-3 text-sm flex items-center gap-2"><XCircle size={18} /> Eligibility Requirements Failed:</p>
+                    <ul className="list-disc pl-5 space-y-2 text-sm text-red-700 font-medium">
+                        {deactivateReasons.map((reason, idx) => <li key={idx}>{reason}</li>)}
+                    </ul>
+                </div>
+            ) : (
+                <Typography color="text.secondary" fontWeight="500" mt={1}>
+                    Are you sure you want to completely deactivate your university portal account? This will hide your profile and invalidate your existing logins.
+                </Typography>
+            )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+            <Button onClick={() => { setDeactivateModal(false); setDeactivateReasons([]); }} color="inherit" sx={{ fontWeight: 'bold' }}>Close</Button>
+            {deactivateReasons.length === 0 && (
+                <Button onClick={handleDeactivate} variant="contained" color="error" disabled={isSaving} sx={{ fontWeight: 'bold', borderRadius: 2 }}>
+                   {isSaving ? <Loader2 size={16} className="animate-spin mr-2" /> : null} Set as Deactivated
+                </Button>
+            )}
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const Society = require('../models/Society');
 const HandoverLog = require('../models/HandoverLog');
+const Booking = require('../models/Booking');
+const Event = require('../models/Event');
 const bcrypt = require('bcryptjs');
 
 // @desc    Search students by name, email, or studentId
@@ -103,6 +105,66 @@ exports.updatePassword = async (req, res) => {
         await user.save();
 
         res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+// @desc    Deactivate User Profile
+// @route   PUT /api/users/profile/deactivate
+// @access  Private
+exports.deactivateProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const reasons = [];
+
+        // Check Society Admin active roles
+        if (user.role === 'SocietyAdmin' || user.role === 'SuperAdmin') {
+            if (user.adminSocieties && user.adminSocieties.length > 0) {
+                reasons.push(`You are currently acting as an active administrator for ${user.adminSocieties.length} societies.`);
+            }
+            
+            const hasActiveLeadership = user.leadershipHistory && user.leadershipHistory.some(role => role.status === 'Active');
+            if (hasActiveLeadership) {
+                reasons.push('You have active board/committee roles that must be revoked by a Super Admin first.');
+            }
+            
+            if (user.role === 'SuperAdmin') {
+                reasons.push('Super Admin accounts cannot be deactivated through this automated portal.');
+            }
+        }
+
+        // Check Upcoming Bookings
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Find all bookings where user is primaryBuyer or an attendee (matching exact studentId)
+        // Strictly filter to those that are either Confirmed or Pending Verification
+        const relevantBookings = await Booking.find({
+            $or: [
+                { primaryBuyer: user._id },
+                { 'attendees.studentId': { $regex: new RegExp(`^${user.studentId || ''}$`, 'i') } }
+            ],
+            status: { $in: ['Confirmed', 'Pending Verification'] }
+        }).populate('event');
+
+        // Filter the populated explicit future/upcoming events based on `date` attribute (string comparison 'YYYY-MM-DD')
+        const upcomingBookings = relevantBookings.filter(b => b.event && b.event.date >= todayStr);
+        
+        if (upcomingBookings.length > 0) {
+            reasons.push(`You have ${upcomingBookings.length} active or pending ticket(s) for upcoming events. Cannot deactivate until these are resolved, completed, or transferred.`);
+        }
+
+        if (reasons.length > 0) {
+            return res.status(400).json({ success: false, message: 'Eligibility constraints failed.', reasons });
+        }
+
+        // Perform Deactivation
+        user.isActive = false;
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Account deactivated successfully.' });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
@@ -44,6 +45,35 @@ export default function Layout() {
       navigate('/');
     }
   }, [user, navigate]);
+
+  // Sync profile data on load and listen for local updates
+  useEffect(() => {
+    const syncProfile = async () => {
+      const token = localStorage.getItem('userToken');
+      if (!token) return;
+      try {
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const res = await axios.get('http://localhost:5001/api/users/profile', config);
+        const userData = res.data.data || res.data;
+        const currentStorage = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const updatedStorage = { ...currentStorage, ...userData };
+        localStorage.setItem('userInfo', JSON.stringify(updatedStorage));
+        setUser(updatedStorage);
+      } catch (error) {
+        console.error("Failed to sync profile:", error);
+      }
+    };
+    syncProfile();
+
+    const handleProfileUpdate = () => {
+      const stored = localStorage.getItem('userInfo');
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    };
+    window.addEventListener('userProfileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('userProfileUpdated', handleProfileUpdate);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
@@ -201,17 +231,19 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-900">{user.name}</p>
-              <p className="text-xs text-gray-500">{user.role}</p>
-            </div>
-            {user.profilePic ? (
-              <img src={user.profilePic} alt={user.name} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-yellow-100 text-sliit-blue flex items-center justify-center font-bold border border-yellow-200 uppercase">
-                {user.name.charAt(0)}
+            <Link to="/profile" className="flex items-center gap-4 hover:opacity-80 transition-opacity cursor-pointer">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-bold text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.role}</p>
               </div>
-            )}
+              {user.profilePic ? (
+                <img src={user.profilePic} alt={user.name} className="h-10 w-10 rounded-full object-cover border border-gray-200" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-yellow-100 text-sliit-blue flex items-center justify-center font-bold border border-yellow-200 uppercase">
+                  {user.name.charAt(0)}
+                </div>
+              )}
+            </Link>
             <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-600 transition-colors ml-2" title="Logout">
               <LogOut className="h-5 w-5" />
             </button>
