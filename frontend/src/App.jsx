@@ -16,6 +16,7 @@ import ManageEvents from './pages/admin/ManageEvents';
 import TransportLogistics from './pages/admin/TransportLogistics';
 import VerifySlips from './pages/admin/VerifySlips';
 import SocietySettings from './pages/admin/SocietySettings';
+import SocietyAdminChat from './pages/admin/SocietyAdminChat';
 
 // Super Admin Pages
 import MasterRoutes from './pages/super/MasterRoutes';
@@ -55,6 +56,7 @@ function App() {
           <Route path="/admin/events" element={<ManageEvents />} />
           <Route path="/admin/verify-slips" element={<VerifySlips />} />
           <Route path="/admin/transport" element={<TransportLogistics />} />
+          <Route path="/admin/chat" element={<SocietyAdminChat />} />
           <Route path="/admin/society-settings" element={<SocietySettings />} />
 
           {/* Super Admin Routes */}

@@ -99,6 +99,7 @@ export default function Layout() {
     { name: 'Manage Events', path: '/admin/events', icon: Calendar },
     { name: 'Verify Payments (AI)', path: '/admin/verify-slips', icon: CheckSquare },
     { name: 'Transport Logistics', path: '/admin/transport', icon: Bus },
+    { name: 'Society Inbox', path: '/admin/chat', icon: MessageSquare },
     { name: 'Society Settings', path: '/admin/society-settings', icon: Users },
   ];
 
