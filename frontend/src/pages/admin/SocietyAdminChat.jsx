@@ -20,7 +20,7 @@ export default function SocietyAdminChat() {
 
   const scrollRef = useRef();
 
-  // 1. Initialize Socket & Fetch Initial Sidebar Data
+  // Initialize Socket & Fetch Initial Sidebar Data
   useEffect(() => {
     if (!activeWorkspace) return;
       
@@ -46,7 +46,7 @@ export default function SocietyAdminChat() {
     return () => newSocket.close();
   }, [activeWorkspace]);
 
-  // 2. Add society to socket & listen for global socket events
+  // Add society to socket & listen for global socket events
   useEffect(() => {
     if (!socket || !activeWorkspace) return;
     socket.emit('addUser', activeWorkspace._id);
@@ -62,7 +62,7 @@ export default function SocietyAdminChat() {
     });
   }, [socket, activeWorkspace]);
 
-  // 3. Load messages when a chat is selected
+  // Load messages when a chat is selected
   useEffect(() => {
     if (!selectedChat) return;
 
@@ -88,7 +88,7 @@ export default function SocietyAdminChat() {
     fetchMessages();
   }, [selectedChat, socket]);
 
-  // 4. Socket listeners for active room
+  // Socket listeners for active room
   useEffect(() => {
     if (!socket) return;
 
@@ -113,7 +113,7 @@ export default function SocietyAdminChat() {
     };
   }, [socket, selectedChat]);
 
-  // 5. Scroll to bottom
+  // Scroll to bottom
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
