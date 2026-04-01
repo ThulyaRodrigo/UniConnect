@@ -21,6 +21,13 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Please add all fields including student ID' });
         }
 
+        // Maintenance Mode Check
+        const PortalSettings = require('../models/PortalSettings');
+        const settings = await PortalSettings.getSettings();
+        if (settings.maintenanceMode) {
+            return res.status(403).json({ message: 'System is under maintenance' });
+        }
+
         // Check if user exists
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -68,6 +75,9 @@ exports.loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Please provide email and password' });
         }
 
+        const PortalSettings = require('../models/PortalSettings');
+        const settings = await PortalSettings.getSettings();
+
         // Find user by email or studentId and explicitly select the password field (since it's hidden by default)
         // Populate the adminSocieties so the frontend workspace switcher has the names ready!
         // populated 'adminSocieties' makes frontend dropdown ready!
@@ -82,6 +92,12 @@ exports.loginUser = async (req, res) => {
 
         // Check password match
         if (user && (await bcrypt.compare(password, user.password))) {
+            
+            // Final Maintenance Check: if user is NOT superadmin and we're in maintenance mode
+            if (settings.maintenanceMode && user.role !== 'SuperAdmin') {
+                return res.status(403).json({ message: 'System is under maintenance' });
+            }
+
             res.status(200).json({
                 _id: user.id,
                 name: user.name,

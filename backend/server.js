@@ -72,6 +72,7 @@ app.use('/api/routes', require('./routes/routeRoutes'));
 app.use('/api/verify', require('./routes/verificationRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/feedback', require('./routes/feedbackRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
