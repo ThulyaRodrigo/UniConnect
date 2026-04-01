@@ -18,9 +18,19 @@ const io = new Server(server, {
 // Make io accessible in controllers
 app.set('io', io);
 
+// Online user map: socketId -> userId
+const onlineUsers = new Map();
+
 // Socket.io handlers
 io.on('connection', (socket) => {
     // console.log(`User Connected: ${socket.id}`);
+
+    // Register user as online
+    socket.on('addUser', (userId) => {
+        onlineUsers.set(socket.id, userId.toString());
+        // Broadcast updated online list to all clients
+        io.emit('getOnlineUsers', Array.from(onlineUsers.values()));
+    });
 
     // Join a specific conversation room
     socket.on('join_room', (data) => {
@@ -34,6 +44,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
+        onlineUsers.delete(socket.id);
+        io.emit('getOnlineUsers', Array.from(onlineUsers.values()));
         // console.log('User Disconnected', socket.id);
     });
 });
@@ -59,6 +71,7 @@ app.use('/api/transports', require('./routes/transportRoutes'));
 app.use('/api/routes', require('./routes/routeRoutes'));
 app.use('/api/verify', require('./routes/verificationRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/feedback', require('./routes/feedbackRoutes'));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
