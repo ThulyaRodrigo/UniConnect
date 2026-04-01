@@ -1,5 +1,6 @@
 const Society = require('../models/Society');
 const Event = require('../models/Event');
+const Booking = require('../models/Booking');
 
 
 // @desc    Create a new society
@@ -38,8 +39,11 @@ exports.createSociety = async (req, res) => {
 // @access  Public (or Private depending on if students need to see a list)
 exports.getSocieties = async (req, res) => {
     try {
-        // Find all active societies, sort alphabetically by name, and populate event count
-        const societies = await Society.find({ isActive: true }).populate('eventsHosted').sort({ name: 1 });
+        const includeInactive = req.query.includeInactive === 'true';
+        const filter = includeInactive ? {} : { isActive: true };
+        
+        // Find societies based on filter, sort alphabetically, and populate event count
+        const societies = await Society.find(filter).populate('eventsHosted').sort({ name: 1 });
         
         res.status(200).json({
             success: true,
@@ -64,10 +68,29 @@ exports.getSocietySettings = async (req, res) => {
             });
 
         // Since the board is inside the society document, we just send the society
-        if (!society || !society.isActive) {
-            return res.status(404).json({ message: 'Society not found or deactivated' });
+        if (!society) {
+            return res.status(404).json({ message: 'Society not found' });
         }
-        res.status(200).json({ success: true, data: society });
+
+        // --- Fetch Analytics ---
+        const events = await Event.find({ society: req.params.id }).select('_id');
+        const eventIds = events.map(e => e._id);
+
+        const confirmedBookings = await Booking.find({ 
+            event: { $in: eventIds }, 
+            status: 'Confirmed' 
+        });
+        const fundsCollected = confirmedBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+
+        const pendingBookings = await Booking.countDocuments({
+            event: { $in: eventIds },
+            status: 'Pending Verification'
+        });
+
+        const responseData = society.toObject();
+        responseData.analytics = { fundsCollected, pendingBookings };
+
+        res.status(200).json({ success: true, data: responseData });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -79,7 +102,7 @@ exports.getSocietySettings = async (req, res) => {
 exports.updateSocietySettings = async (req, res) => {
     try {
         const society = await Society.findById(req.params.id);
-        if (!society || !society.isActive) {
+        if (!society) {
             return res.status(404).json({ message: 'Society not found or deactivated' });
         }
 
@@ -136,6 +159,28 @@ exports.deactivateSociety = async (req, res) => {
         await society.save();
 
         res.status(200).json({ success: true, message: 'Society deactivated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+// @desc    Activate a society
+// @route   PUT /api/societies/:id/activate
+// @access  Private/SuperAdmin
+exports.activateSociety = async (req, res) => {
+    try {
+        const society = await Society.findById(req.params.id);
+        if (!society) {
+            return res.status(404).json({ message: 'Society not found' });
+        }
+        if (society.isActive) {
+            return res.status(400).json({ message: 'Society is already active' });
+        }
+
+        society.isActive = true;
+        await society.save();
+
+        res.status(200).json({ success: true, message: 'Society activated successfully', data: society });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
