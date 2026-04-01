@@ -1,17 +1,102 @@
-import { useState } from 'react';
-import { Paper, Typography, Box, Button, Grid, IconButton, Tooltip, Badge, Divider } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Paper, Typography, Box, Button, Grid, IconButton, Tooltip, Badge, Divider, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { Image as ImageIcon, UploadCloud, Trash2, Eye, Layout as LayoutIcon, Info, CheckCircle2 } from 'lucide-react';
+import axios from 'axios';
 
 export default function PortalSettings() {
-  const [images, setImages] = useState([
-    { id: 1, url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600', name: 'Graduation 2025', size: '1.2MB' },
-    { id: 2, url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600', name: 'Main Campus Hall', size: '0.8MB' },
-    { id: 3, url: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=600', name: 'Student Meetup', size: '2.4MB' }
-  ]);
+  const [settings, setSettings] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null });
+  const [previewDialog, setPreviewDialog] = useState({ open: false, url: null });
 
-  const removeImage = (id) => {
-    setImages(images.filter(img => img.id !== id));
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axios.get('http://localhost:5001/api/settings');
+      setSettings(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const uploadCarouselImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const token = localStorage.getItem('userToken');
+      const res = await axios.post('http://localhost:5001/api/settings/carousel', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSettings(res.data);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error uploading image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const removeCarouselImage = async () => {
+    if (!deleteDialog.id) return;
+    try {
+      const token = localStorage.getItem('userToken');
+      const res = await axios.delete(`http://localhost:5001/api/settings/carousel/${deleteDialog.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSettings(res.data);
+      setDeleteDialog({ open: false, id: null });
+    } catch (err) {
+      console.error(err);
+      alert('Error removing image');
+    }
+  };
+
+  const uploadLogo = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    try {
+      const token = localStorage.getItem('userToken');
+      const res = await axios.put('http://localhost:5001/api/settings/logo', formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSettings(res.data);
+      // Let the rest of the app know the logo updated
+      window.dispatchEvent(new Event('settingsUpdated'));
+    } catch (err) {
+      console.error(err);
+      alert('Error updating logo');
+    }
+  };
+
+  const toggleMaintenance = async () => {
+    try {
+      const token = localStorage.getItem('userToken');
+      const res = await axios.put('http://localhost:5001/api/settings/maintenance', 
+        { isEnabled: !settings.maintenanceMode },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSettings(res.data);
+    } catch (err) {
+      console.error(err);
+      alert('Error toggling maintenance mode');
+    }
+  };
+
+  if (isLoading) return <div className="p-10 flex justify-center"><CircularProgress /></div>;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-10">
@@ -27,8 +112,8 @@ export default function PortalSettings() {
           </p>
         </div>
         <div className="hidden sm:block">
-          <Badge badgeContent={images.length} color="primary" sx={{ '& .MuiBadge-badge': { backgroundColor: '#FF7100', fontWeight: 'bold' } }}>
-            <Button variant="outlined" startIcon={<LayoutIcon size={18} />} sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700, borderColor: '#e5e7eb', color: '#374151' }}>
+          <Badge badgeContent={settings?.carouselImages?.length || 0} color="primary" sx={{ '& .MuiBadge-badge': { backgroundColor: '#FF7100', fontWeight: 'bold' } }}>
+            <Button variant="outlined" component="a" href="/" target="_blank" startIcon={<LayoutIcon size={18} />} sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 700, borderColor: '#e5e7eb', color: '#374151' }}>
               Preview Login Page
             </Button>
           </Badge>
@@ -44,7 +129,7 @@ export default function PortalSettings() {
                 <ImageIcon size={22} className="text-sliit-orange" /> Authentication Carousel
               </Typography>
               <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
-                {images.length}/6 Slots Used
+                {settings?.carouselImages?.length || 0}/6 Slots Used
               </Typography>
             </div>
 
@@ -54,15 +139,17 @@ export default function PortalSettings() {
                 <label className="group flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-200 bg-gray-50/50 hover:bg-white hover:border-sliit-orange rounded-3xl cursor-pointer transition-all duration-300 relative overflow-hidden">
                   <div className="absolute inset-0 bg-sliit-orange/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                   <UploadCloud className="h-10 w-10 text-gray-400 group-hover:text-sliit-orange group-hover:-translate-y-1 transition-all" />
-                  <Typography variant="body2" fontWeight="800" sx={{ mt: 1.5, color: '#64748b' }}>Add Asset</Typography>
+                  <Typography variant="body2" fontWeight="800" sx={{ mt: 1.5, color: '#64748b' }}>
+                    {isUploading ? 'Uploading...' : 'Add Asset'}
+                  </Typography>
                   <Typography variant="caption" sx={{ color: '#94a3b8', mt: 0.5 }}>Drop JPG or PNG</Typography>
-                  <input type="file" className="hidden" accept="image/*" />
+                  <input type="file" className="hidden" accept="image/*" onChange={uploadCarouselImage} disabled={isUploading || settings?.carouselImages?.length >= 6} />
                 </label>
               </Grid>
 
               {/* Image Thumbnails */}
-              {images.map((img) => (
-                <Grid item xs={12} sm={6} md={4} key={img.id}>
+              {settings?.carouselImages?.map((img) => (
+                <Grid item xs={12} sm={6} md={4} key={img._id}>
                   <Box sx={{ 
                     position: 'relative', 
                     width: '100%', 
@@ -91,12 +178,12 @@ export default function PortalSettings() {
                       backdropFilter: 'blur(2px)'
                     }}>
                       <Tooltip title="Preview Large">
-                        <IconButton size="small" sx={{ bgcolor: 'white', '&:hover': { bgcolor: '#f1f5f9' } }}>
+                        <IconButton onClick={() => setPreviewDialog({ open: true, url: img.url })} size="small" sx={{ bgcolor: 'white', '&:hover': { bgcolor: '#f1f5f9' } }}>
                           <Eye size={16} className="text-sliit-blue" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton onClick={() => removeImage(img.id)} size="small" sx={{ bgcolor: '#fee2e2', '&:hover': { bgcolor: '#fecaca' } }}>
+                        <IconButton onClick={() => setDeleteDialog({ open: true, id: img._id })} size="small" sx={{ bgcolor: '#fee2e2', '&:hover': { bgcolor: '#fecaca' } }}>
                           <Trash2 size={16} className="text-red-600" />
                         </IconButton>
                       </Tooltip>
@@ -156,14 +243,24 @@ export default function PortalSettings() {
             <div className="space-y-5">
               <div>
                 <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase' }}>Primary Branding</Typography>
-                <div className="mt-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-3">
-                  <div className="h-10 w-10 bg-sliit-blue rounded-xl flex items-center justify-center">
-                    <ImageIcon className="text-white" size={20} />
+                <div className="mt-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+                      {settings?.logo ? (
+                        <img src={settings.logo} alt="Logo" className="w-full h-full object-contain" />
+                      ) : (
+                        <ImageIcon className="text-gray-400" size={20} />
+                      )}
+                    </div>
+                    <div>
+                      <Typography variant="body2" fontWeight="bold">UniConnect Logo</Typography>
+                      <Typography variant="caption" color="text.secondary">Main Navigation Asset</Typography>
+                    </div>
                   </div>
-                  <div>
-                    <Typography variant="body2" fontWeight="bold">UniConnect Logo</Typography>
-                    <Typography variant="caption" color="text.secondary">Main Navigation Asset</Typography>
-                  </div>
+                  <label className="cursor-pointer bg-white border border-gray-200 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-50">
+                    Change
+                    <input type="file" className="hidden" accept="image/*" onChange={uploadLogo} />
+                  </label>
                 </div>
               </div>
 
@@ -190,17 +287,61 @@ export default function PortalSettings() {
             </Button>
           </Paper>
 
-          <Paper elevation={0} sx={{ p: 4, border: '1px solid #fee2e2', borderRadius: 5, bgcolor: '#fffafb' }}>
-            <Typography variant="subtitle2" fontWeight="900" color="#b91c1c" gutterBottom>Maintenance Mode</Typography>
+          <Paper elevation={0} sx={{ p: 4, border: settings?.maintenanceMode ? '1px solid #fee2e2' : '1px solid #e5e7eb', borderRadius: 5, bgcolor: settings?.maintenanceMode ? '#fffafb' : 'white' }}>
+            <Typography variant="subtitle2" fontWeight="900" color={settings?.maintenanceMode ? "#b91c1c" : "textPrimary"} gutterBottom>
+              {settings?.maintenanceMode ? 'Maintenance Mode Active' : 'Maintenance Mode Off'}
+            </Typography>
             <Typography variant="caption" color="text.secondary" mb={2} component="p">
               Enabling this will restrict access to all students and society admins during upgrades.
             </Typography>
-            <Button size="small" variant="outlined" color="error" sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2 }}>
-              Enable Mode
+            <Button size="small" onClick={toggleMaintenance} variant="outlined" color={settings?.maintenanceMode ? "success" : "error"} sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2 }}>
+              {settings?.maintenanceMode ? 'Disable Mode' : 'Enable Mode'}
             </Button>
           </Paper>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog 
+        open={deleteDialog.open} 
+        onClose={() => setDeleteDialog({ open: false, id: null })}
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#dc2626', pb: 1 }}>Remove Carousel Image</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to remove this image from the authentication carousel? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteDialog({ open: false, id: null })} sx={{ color: '#64748b', fontWeight: 'bold', textTransform: 'none' }}>Cancel</Button>
+          <Button onClick={removeCarouselImage} color="error" variant="contained" sx={{ fontWeight: 'bold', textTransform: 'none', borderRadius: 2 }}>
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Full Image Preview Dialog */}
+      <Dialog 
+        open={previewDialog.open} 
+        onClose={() => setPreviewDialog({ open: false, url: null })}
+        maxWidth="lg"
+        PaperProps={{ sx: { borderRadius: 4, overflow: 'hidden', bgcolor: 'transparent', boxShadow: 'none' } }}
+      >
+        <div className="relative">
+          <IconButton 
+            onClick={() => setPreviewDialog({ open: false, url: null })}
+            sx={{ position: 'absolute', top: 12, right: 12, bgcolor: 'rgba(0,0,0,0.5)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' } }}
+          >
+            <Trash2 size={24} className="hidden" /> {/* Dummy to keep spacing */}
+            <span className="text-xl leading-none px-1">×</span>
+          </IconButton>
+          {previewDialog.url && (
+             <img src={previewDialog.url} alt="Carousel Preview" className="w-full h-auto max-h-[85vh] object-contain bg-black/50 backdrop-blur-md rounded-2xl" />
+          )}
+        </div>
+      </Dialog>
+
     </div>
   );
 }
