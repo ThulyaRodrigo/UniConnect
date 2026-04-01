@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
@@ -6,6 +6,8 @@ import {
   CheckSquare, Users, LogOut, Menu, GraduationCap,
   CalendarDays, MessageSquare, MessageCircle, User as UserIcon, ChevronDown, Inbox
 } from 'lucide-react';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
+import { io } from 'socket.io-client';
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -39,6 +41,18 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [portalLogo, setPortalLogo] = useState('');
+  const [maintenanceAlert, setMaintenanceAlert] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+  const [logoutDialog, setLogoutDialog] = useState(false);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('userToken');
+    setUser(null);
+    navigate('/');
+  }, [navigate]);
+
   // Route Protection
   useEffect(() => {
     if (!user || !localStorage.getItem('userToken')) {
@@ -46,7 +60,18 @@ export default function Layout() {
     }
   }, [user, navigate]);
 
-  // Sync profile data on load and listen for local updates
+  // Handle countdown when maintenance alert is active
+  useEffect(() => {
+    let timer;
+    if (maintenanceAlert && countdown > 0) {
+      timer = setInterval(() => setCountdown(c => c - 1), 1000);
+    } else if (maintenanceAlert && countdown === 0) {
+      setTimeout(() => handleLogout(), 0);
+    }
+    return () => clearInterval(timer);
+  }, [maintenanceAlert, countdown, handleLogout]);
+
+  // Sync profile data on load AND check settings
   useEffect(() => {
     const syncProfile = async () => {
       const token = localStorage.getItem('userToken');
@@ -59,6 +84,26 @@ export default function Layout() {
         const updatedStorage = { ...currentStorage, ...userData };
         localStorage.setItem('userInfo', JSON.stringify(updatedStorage));
         setUser(updatedStorage);
+        // Also fetch settings!
+        try {
+          const settingsRes = await axios.get('http://localhost:5001/api/settings');
+          if (settingsRes.data?.logo) {
+            setPortalLogo(settingsRes.data.logo);
+            document.title = "UniConnect Campus Portal";
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+              link = document.createElement('link');
+              link.rel = 'icon';
+              document.head.appendChild(link);
+            }
+            link.href = settingsRes.data.logo;
+          }
+          if (settingsRes.data?.maintenanceMode && user.role !== 'SuperAdmin') {
+            setMaintenanceAlert(true);
+          }
+        } catch (settingsErr) {
+          console.error("Failed to load global settings", settingsErr);
+        }
       } catch (error) {
         console.error("Failed to sync profile:", error);
       }
@@ -72,15 +117,23 @@ export default function Layout() {
       }
     };
     window.addEventListener('userProfileUpdated', handleProfileUpdate);
-    return () => window.removeEventListener('userProfileUpdated', handleProfileUpdate);
-  }, []);
+    window.addEventListener('settingsUpdated', syncProfile);
 
-  const handleLogout = () => {
-    localStorage.removeItem('userInfo');
-    localStorage.removeItem('userToken');
-    setUser(null);
-    navigate('/');
-  };
+    // Socket for Maintenance updates
+    const socket = io('http://localhost:5001');
+    socket.on('maintenance_mode_toggled', (data) => {
+       const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+       if (data.maintenanceMode && currentUser.role !== 'SuperAdmin') {
+         setMaintenanceAlert(true);
+       }
+    });
+
+    return () => {
+       window.removeEventListener('userProfileUpdated', handleProfileUpdate);
+       window.removeEventListener('settingsUpdated', syncProfile);
+       socket.disconnect();
+    };
+  }, [user?.role]);
 
   const globalLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Home },
@@ -125,8 +178,12 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-sliit-blue text-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-center h-20 border-b border-blue-800 shrink-0">
-          <GraduationCap className="h-8 w-8 text-sliit-orange mr-3" />
-          <h1 className="text-2xl font-bold tracking-wide">UniConnets</h1>
+          {portalLogo ? (
+             <img src={portalLogo} alt="Logo" className="h-8 max-w-10 mr-3 object-contain rounded" />
+          ) : (
+             <GraduationCap className="h-8 w-8 text-sliit-orange mr-3" />
+          )}
+          <h1 className="text-2xl font-bold tracking-wide">UniConnet</h1>
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
@@ -246,7 +303,7 @@ export default function Layout() {
                 </div>
               )}
             </Link>
-            <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-600 transition-colors ml-2" title="Logout">
+            <button onClick={() => setLogoutDialog(true)} className="p-2 text-gray-400 hover:text-red-600 transition-colors ml-2" title="Logout">
               <LogOut className="h-5 w-5" />
             </button>
           </div>
@@ -257,6 +314,55 @@ export default function Layout() {
           <Outlet context={{ activeWorkspace }} /> 
         </main>
       </div>
+
+      {/* Maintenance Dialog Popup */}
+      <Dialog 
+        open={maintenanceAlert} 
+        disableEscapeKeyDown={true}
+        PaperProps={{ sx: { borderRadius: 3, p: 2, maxWidth: 400 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, color: '#b91c1c', pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          System Maintenance Warning
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+            The UniConnect portal is currently undergoing scheduled maintenance and upgrades. 
+            Access is securely locked for Super Administrators only.
+            <br/><br/>
+            You will be automatically logged out in <b>{countdown} seconds</b>. Thank you for your patience!
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ pt: 2, px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleLogout}
+            variant="contained" 
+            sx={{ bgcolor: '#b91c1c', borderRadius: 2, textTransform: 'none', fontWeight: 'bold', '&:hover': { bgcolor: '#991b1b'} }}
+            fullWidth
+          >
+            Log Out Now
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog 
+        open={logoutDialog} 
+        onClose={() => setLogoutDialog(false)}
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#dc2626', pb: 1 }}>Confirm Sign Out</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to sign out of your account?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setLogoutDialog(false)} sx={{ color: '#64748b', fontWeight: 'bold', textTransform: 'none' }}>Cancel</Button>
+          <Button onClick={handleLogout} color="error" variant="contained" sx={{ fontWeight: 'bold', textTransform: 'none', borderRadius: 2 }}>
+            Sign Out
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

@@ -43,7 +43,10 @@ export default function Societies() {
 
   const fetchSocieties = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/societies');
+      const token = localStorage.getItem('userToken');
+      const response = await axios.get('http://localhost:5001/api/societies?includeInactive=true', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setSocieties(response.data.data);
       setIsLoading(false);
     } catch (error) {
@@ -124,15 +127,19 @@ export default function Societies() {
                   display: 'flex',
                   flexDirection: 'column',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  opacity: soc.isActive === false ? 0.7 : 1,
+                  filter: soc.isActive === false ? 'grayscale(0.5)' : 'none',
                   '&:hover': {
                     transform: 'translateY(-4px)',
                     boxShadow: '0 12px 20px -10px rgba(0, 0, 0, 0.1)',
-                    borderColor: '#FF7100'
+                    borderColor: soc.isActive === false ? '#94a3b8' : '#FF7100',
+                    opacity: 1,
+                    filter: 'none'
                   }
                 }}
               >
-                <div className="absolute -top-3 -right-2 bg-sliit-blue text-white text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg z-10">
-                  {soc.category}
+                <div className={`absolute -top-3 -right-2 text-white text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg z-10 ${soc.isActive === false ? 'bg-red-500' : 'bg-sliit-blue'}`}>
+                  {soc.isActive === false ? 'INACTIVE' : soc.category}
                 </div>
 
                 <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
