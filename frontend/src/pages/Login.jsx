@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, GraduationCap } from 'lucide-react';
 import axios from 'axios';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, CircularProgress } from '@mui/material';
 import pic1 from '../assets/signup_images/pic1.jpg';
 import pic2 from '../assets/signup_images/pic2.JPG';
 import pic3 from '../assets/signup_images/pic3.JPG';
@@ -15,15 +16,37 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const [bgImagesData, setBgImagesData] = useState([]);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Fetch dynamic settings for login background
+    const fetchSettings = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/settings');
+        if (res.data && res.data.carouselImages && res.data.carouselImages.length > 0) {
+          setBgImagesData(res.data.carouselImages.map(img => img.url));
+        } else {
+          setBgImagesData(bgImages); // Fallback locally
+        }
+      } catch (err) {
+        console.error('Failed to load settings', err);
+        setBgImagesData(bgImages); // Fallback locally
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  useEffect(() => {
+    if (bgImagesData.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bgImages.length);
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % bgImagesData.length);
     }, 10000); // Change image every 10 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [bgImagesData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,17 +75,19 @@ export default function Login() {
 
     } catch (err) {
       setIsLoading(false);
-      // Catch "Invalid Credentials" or other backend errors
-      setError(err.response?.data?.message || 'Failed to sign in. Please try again.');
+      if (err.response?.status === 403 && err.response?.data?.message === 'System is under maintenance') {
+         setShowMaintenanceModal(true);
+      } else {
+         setError(err.response?.data?.message || 'Failed to sign in. Please try again.');
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex bg-gray-50 font-sans">
-      {/* Left Side - SLIIT Branding */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative overflow-hidden">
         {/* Background Image Layer */}
-        {bgImages.map((img, index) => (
+        {bgImagesData.map((img, index) => (
           <div
             key={img}
             className={`absolute inset-0 z-0 bg-cover bg-center transition-opacity duration-1000 ${
@@ -168,6 +193,35 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Maintenance Dialog */}
+      <Dialog 
+        open={showMaintenanceModal} 
+        onClose={() => setShowMaintenanceModal(false)}
+        PaperProps={{ sx: { borderRadius: 3, p: 2, maxWidth: 400 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, color: '#b91c1c', pb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          System Maintenance
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+            The UniConnect portal is currently undergoing scheduled maintenance and upgrades. 
+            Access is temporarily restricted to system administrators.
+            <br/><br/>
+            Please check back shortly. Thank you for your patience!
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ pt: 2, px: 3, pb: 2 }}>
+          <Button 
+            onClick={() => setShowMaintenanceModal(false)}
+            variant="contained" 
+            sx={{ bgcolor: '#053668', borderRadius: 2, textTransform: 'none', fontWeight: 'bold' }}
+            fullWidth
+          >
+            I Understand
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
