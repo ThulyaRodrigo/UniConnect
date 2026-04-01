@@ -155,7 +155,7 @@ exports.searchStudents = async (req, res) => {
         }
         const regex = new RegExp(q.trim(), 'i');
         const students = await User.find({
-            role: 'Student',
+            role: { $in: ['Student', 'SocietyAdmin'] },
             $or: [{ name: regex }, { studentId: regex }]
         }).select('name studentId profilePic').limit(10);
         res.status(200).json({ success: true, students });
