@@ -16,6 +16,7 @@ import ManageEvents from './pages/admin/ManageEvents';
 import TransportLogistics from './pages/admin/TransportLogistics';
 import VerifySlips from './pages/admin/VerifySlips';
 import SocietySettings from './pages/admin/SocietySettings';
+import SocietyAdminChat from './pages/admin/SocietyAdminChat';
 
 // Super Admin Pages
 import MasterRoutes from './pages/super/MasterRoutes';
@@ -23,6 +24,7 @@ import Handover from './pages/super/Handover';
 import Societies from './pages/super/Societies';
 import SocietyDetails from './pages/super/SocietyDetails'; 
 import PortalSettings from './pages/super/PortalSettings';
+import ManageFeedback from './pages/super/ManageFeedback';
 
 // Shared Pages
 import ProfileSettings from './pages/shared/ProfileSettings'; 
@@ -55,6 +57,7 @@ function App() {
           <Route path="/admin/events" element={<ManageEvents />} />
           <Route path="/admin/verify-slips" element={<VerifySlips />} />
           <Route path="/admin/transport" element={<TransportLogistics />} />
+          <Route path="/admin/chat" element={<SocietyAdminChat />} />
           <Route path="/admin/society-settings" element={<SocietySettings />} />
 
           {/* Super Admin Routes */}
@@ -63,6 +66,7 @@ function App() {
           <Route path="/super/routes" element={<MasterRoutes />} />
           <Route path="/super/handover" element={<Handover />} />
           <Route path="/super/portal-settings" element={<PortalSettings />} />
+          <Route path="/super/feedback" element={<ManageFeedback />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -64,7 +64,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 # Email Service
 EMAIL_USER=your_email_address
-EMAIL_PASS=your_email_app_password
+EMAIL_PASS=your_email_app_password >> https://myaccount.google.com/apppasswords
 
 # Gemini AI
 GEMINI_API_KEY=your_gemini_key

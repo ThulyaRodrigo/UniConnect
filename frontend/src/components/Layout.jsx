@@ -4,7 +4,7 @@ import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Home, Calendar, Ticket, Bus, ShieldCheck, 
   CheckSquare, Users, LogOut, Menu, GraduationCap,
-  CalendarDays, MessageSquare, MessageCircle, User as UserIcon, ChevronDown
+  CalendarDays, MessageSquare, MessageCircle, User as UserIcon, ChevronDown, Inbox
 } from 'lucide-react';
 
 export default function Layout() {
@@ -99,6 +99,7 @@ export default function Layout() {
     { name: 'Manage Events', path: '/admin/events', icon: Calendar },
     { name: 'Verify Payments (AI)', path: '/admin/verify-slips', icon: CheckSquare },
     { name: 'Transport Logistics', path: '/admin/transport', icon: Bus },
+    { name: 'Society Inbox', path: '/admin/chat', icon: MessageSquare },
     { name: 'Society Settings', path: '/admin/society-settings', icon: Users },
   ];
 
@@ -106,6 +107,7 @@ export default function Layout() {
     { name: 'Society Management', path: '/super/societies', icon: Users },
     { name: 'Master Routes', path: '/super/routes', icon: Bus },
     { name: 'Access Handover', path: '/super/handover', icon: ShieldCheck },
+    { name: 'Student Feedback', path: '/super/feedback', icon: Inbox },
     { name: 'Portal Settings', path: '/super/portal-settings', icon: CheckSquare },
   ];
 
