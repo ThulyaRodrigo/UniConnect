@@ -6,15 +6,25 @@ const messageSchema = new mongoose.Schema({
         ref: 'Conversation', 
         required: true 
     },
-    // This tells us if the message goes on the LEFT or RIGHT side of the UI
     senderType: { 
         type: String, 
         enum: ['Student', 'Society'], 
         required: true 
     },
+    // 'text' | 'image'
+    messageType: {
+        type: String,
+        enum: ['text', 'image'],
+        default: 'text'
+    },
     text: { 
-        type: String, 
-        required: true 
+        type: String,
+        default: ''
+    },
+    // Cloudinary URL for image messages
+    imageUrl: {
+        type: String,
+        default: ''
     }
 }, { timestamps: true });
 
