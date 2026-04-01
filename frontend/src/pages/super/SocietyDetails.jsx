@@ -1,5 +1,5 @@
 import { Paper, Typography, Box, Button, Chip, Grid, Avatar, TextField, MenuItem, IconButton, Tooltip, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
-import { Shield, Mail, Calendar, Trash2, ArrowLeft, Edit2, Save, X, TrendingUp, Users as UsersIcon, CreditCard, Activity, Globe, Info, Loader2 } from 'lucide-react';
+import { Shield, Mail, Calendar, Trash2, ArrowLeft, Edit2, Save, X, TrendingUp, Users as UsersIcon, CreditCard, Activity, Globe, Info, Loader2, Power } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,10 +12,13 @@ export default function SocietyDetails() {
   const [isEditing, setIsEditing] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   
-  // Deletion States
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Activation States
+  const [isActivateDialogOpen, setIsActivateDialogOpen] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   
   // Real Data States
   const [society, setSociety] = useState(null);
@@ -102,6 +105,22 @@ export default function SocietyDetails() {
     }
   };
 
+  const handleActivate = async () => {
+    setIsActivating(true);
+    try {
+      const config = { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } };
+      await axios.put(`http://localhost:5001/api/societies/${id}/activate`, {}, config);
+      
+      setSociety({ ...society, isActive: true });
+      setSnackbar({ open: true, message: 'Society activated successfully', severity: 'success' });
+      setIsActivateDialogOpen(false);
+    } catch (error) {
+      setSnackbar({ open: true, message: error.response?.data?.message || 'Failed to activate society', severity: 'error' });
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
 
   const handleChange = (field, value) => {
     setEditForm({ ...editForm, [field]: value });
@@ -114,9 +133,9 @@ export default function SocietyDetails() {
   const now = new Date();
   const currentEvents = societyEvents.filter(e => new Date(e.date) >= now);
   const pastEvents = societyEvents.filter(e => new Date(e.date) < now);
-  // (In a real app, revenue and approvals would come from a dedicated /analytics endpoint hitting the Bookings model)
-  const totalRevenue = 'LKR ---'; 
-  const pendingApprovals = '---';
+  
+  const totalRevenue = society.analytics ? `LKR ${society.analytics.fundsCollected.toLocaleString()}` : 'LKR 0'; 
+  const pendingApprovals = society.analytics ? society.analytics.pendingBookings : 0;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
@@ -183,17 +202,27 @@ export default function SocietyDetails() {
               </Button>
             </>
           )}
-          <Tooltip title="Dangerous Action">
-            <IconButton color="error" sx={{ border: '1px solid #fee2e2', borderRadius: 3 }} onClick={() => {
-              if (currentEvents.length > 0) {
-                setSnackbar({ open: true, message: `Cannot deactivate society. There are ${currentEvents.length} upcoming events.`, severity: 'warning' });
-              } else {
-                setIsDeleteDialogOpen(true);
-              }
-            }}>
-              <Trash2 size={18} />
-            </IconButton>
-          </Tooltip>
+          {society.isActive !== false ? (
+            <Tooltip title="Dangerous Action">
+              <IconButton color="error" sx={{ border: '1px solid #fee2e2', borderRadius: 3 }} onClick={() => {
+                if (currentEvents.length > 0) {
+                  setSnackbar({ open: true, message: `Cannot deactivate society. There are ${currentEvents.length} upcoming events.`, severity: 'warning' });
+                } else if (society.board && society.board.length > 0) {
+                  setSnackbar({ open: true, message: `Cannot deactivate society. Please revoke all board positions first.`, severity: 'warning' });
+                } else {
+                  setIsDeleteDialogOpen(true);
+                }
+              }}>
+                <Trash2 size={18} />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Activate Society">
+              <IconButton color="success" sx={{ border: '1px solid #dcfce7', borderRadius: 3 }} onClick={() => setIsActivateDialogOpen(true)}>
+                <Power size={18} />
+              </IconButton>
+            </Tooltip>
+          )}
         </div>
       </div>
 
@@ -422,6 +451,27 @@ export default function SocietyDetails() {
             disabled={deleteConfirmName !== society.name || isDeleting}
           >
             {isDeleting ? 'Deactivating...' : 'Deactivate'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Activate Confirmation Dialog */}
+      <Dialog open={isActivateDialogOpen} onClose={() => !isActivating && setIsActivateDialogOpen(false)}>
+        <DialogTitle sx={{ fontWeight: 'bold', color: '#16a34a' }}>Activate Society</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to activate <strong>{society.name}</strong>? This will allow the society to host events and interact with students again.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setIsActivateDialogOpen(false)} disabled={isActivating} sx={{ color: '#64748b' }}>Cancel</Button>
+          <Button 
+            onClick={handleActivate} 
+            color="success" 
+            variant="contained" 
+            disabled={isActivating}
+          >
+            {isActivating ? 'Activating...' : 'Activate'}
           </Button>
         </DialogActions>
       </Dialog>
