@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import { Send, Search, User, Info, Loader2 } from 'lucide-react';
+import { Search, Info, Loader2 } from 'lucide-react';
+import ChatInput from '../../components/ChatInput';
+import MessageBubble from '../../components/MessageBubble';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +16,7 @@ import CloseIcon from '@mui/icons-material/Close';
 export default function SocietyChat() {
   const [activeChats, setActiveChats] = useState([]);
   const [newChats, setNewChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null); // The currently open conversation details
+  const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +24,8 @@ export default function SocietyChat() {
   const [socket, setSocket] = useState(null);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  // online user logic left out for brevity if unused
+  // Online users: Set of userId strings (societies register their society _id)
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [loadingMessages, setLoadingMessages] = useState(false);
 
   // Info Modal states
@@ -64,9 +67,14 @@ export default function SocietyChat() {
     if (user) {
       socket.emit('addUser', user._id);
     }
+
+    // Track online societies
+    const handleOnlineUsers = (users) => {
+      setOnlineUsers(new Set(users.map(String)));
+    };
+    socket.on('getOnlineUsers', handleOnlineUsers);
     
     socket.on('updateSidebar', () => {
-      // Re-fetch sidebar when a new message arrives so it moves to top or creates active chat
       const token = localStorage.getItem('userToken');
       axios.get('http://localhost:5001/api/chat/student', {
         headers: { Authorization: `Bearer ${token}` }
@@ -76,6 +84,9 @@ export default function SocietyChat() {
       });
     });
 
+    return () => {
+      socket.off('getOnlineUsers', handleOnlineUsers);
+    };
   }, [socket]);
 
   // Load messages when a chat is selected
@@ -160,9 +171,9 @@ export default function SocietyChat() {
     }, 3000);
   };
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedChat) return;
+  const handleSendMessage = async (text, imageFile) => {
+    if (!selectedChat) return;
+    if (!text.trim() && !imageFile) return;
 
     if (socket && selectedChat.conversationId) {
        socket.emit('typing', { room: selectedChat.conversationId, typing: false });
@@ -171,24 +182,37 @@ export default function SocietyChat() {
 
     try {
       const token = localStorage.getItem('userToken');
-      const payload = {
-        societyId: selectedChat.society._id,
-        text: newMessage,
-        senderType: 'Student',
-        conversationId: selectedChat.conversationId || null
-      };
 
-      const res = await axios.post('http://localhost:5001/api/chat/messages', payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      let res;
+      if (imageFile) {
+        // Image upload 
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        formData.append('societyId', selectedChat.society._id);
+        formData.append('senderType', 'Student');
+        if (selectedChat.conversationId) formData.append('conversationId', selectedChat.conversationId);
 
-      // If it was a new chat, update the selectedChat with the new conversationId
+        res = await axios.post('http://localhost:5001/api/chat/upload-image', formData, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        // Text message 
+        const payload = {
+          societyId: selectedChat.society._id,
+          text,
+          senderType: 'Student',
+          conversationId: selectedChat.conversationId || null
+        };
+        res = await axios.post('http://localhost:5001/api/chat/messages', payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      // If new chat, save conversationId
       if (!selectedChat.conversationId) {
          setSelectedChat(prev => ({ ...prev, conversationId: res.data.conversationId }));
       }
-      
       setNewMessage('');
-      
     } catch (err) {
       console.error('Failed to send message', err);
     }
@@ -213,6 +237,13 @@ export default function SocietyChat() {
     const society = isNewChat ? item : item.society;
     const isSelected = selectedChat?.society?._id === society?._id;
     const isDisabled = society?.isActive === false;
+    // Society admins register their society._id as the socket "user"
+    const isOnline = onlineUsers.has(society._id?.toString());
+    // Active chat that is currently open and the other side is typing
+    const chatIsTyping = !isNewChat && isTyping && selectedChat?.conversationId === item.conversationId;
+    const societyStatus = chatIsTyping ? 'typing' : isOnline ? 'online' : 'offline';
+
+    const DOT_COLORS = { online: 'bg-green-500', offline: 'bg-gray-400', typing: 'bg-yellow-400' };
     
     return (
       <div 
@@ -220,8 +251,18 @@ export default function SocietyChat() {
         onClick={() => setSelectedChat(isNewChat ? { society } : item)}
         className={`p-4 cursor-pointer flex items-center gap-3 transition-colors ${isSelected ? 'bg-blue-50 border-l-4 border-sliit-blue' : 'hover:bg-gray-100 border-l-4 border-transparent'} ${isDisabled ? 'opacity-60' : ''}`}
       >
-        <div className="h-10 w-10 shrink-0 rounded-full bg-blue-100 text-sliit-blue flex items-center justify-center font-bold overflow-hidden border border-blue-200">
-           {society.logo ? <img src={society.logo} className="w-full h-full object-cover" /> : society.name.substring(0, 2).toUpperCase()}
+        {/* Avatar with status dot */}
+        <div className="relative shrink-0">
+          <div className="h-10 w-10 rounded-full bg-blue-100 text-sliit-blue flex items-center justify-center font-bold overflow-hidden border border-blue-200">
+             {society.logo ? <img src={society.logo} className="w-full h-full object-cover" alt={society.name} /> : society.name.substring(0, 2).toUpperCase()}
+          </div>
+          {/* Status dot — only meaningful for active (non-new) chats */}
+          {!isNewChat && (
+            <span
+              className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${DOT_COLORS[societyStatus]} transition-colors`}
+              title={societyStatus.charAt(0).toUpperCase() + societyStatus.slice(1)}
+            />
+          )}
         </div>
         <div className="flex-1 overflow-hidden">
           <p className="font-bold text-gray-900 text-sm truncate flex justify-between items-center">
@@ -304,8 +345,17 @@ export default function SocietyChat() {
                     <h3 className="font-bold text-gray-900">{selectedChat.society.name}</h3>
                     {selectedChat.society.isActive === false ? (
                         <p className="text-xs text-red-500 font-medium">Society is no longer available</p>
+                    ) : isTyping ? (
+                        <span className="text-xs text-yellow-500 font-medium flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span className="ml-1">typing…</span>
+                        </span>
+                    ) : onlineUsers.has(selectedChat.society._id?.toString()) ? (
+                        <p className="text-xs text-green-500 font-medium">● Online</p>
                     ) : (
-                        <p className="text-xs text-green-500 font-medium">{typing || isTyping ? 'typing...' : 'Online'}</p>
+                        <p className="text-xs text-gray-400 font-medium">● Offline</p>
                     )}
                   </div>
                 </div>
@@ -326,19 +376,13 @@ export default function SocietyChat() {
                            </span>
                        </div>
                        
-                       {messages.map((msg, index) => {
-                          const isMe = msg.senderType === 'Student'; // Student view: 'Student' is me
-                          return (
-                            <div key={msg._id || index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[75%] px-3 py-2 text-[15px] shadow-sm relative ${isMe ? 'bg-[#d9fdd3] text-[#111b21] rounded-lg rounded-tr-sm pl-10' : 'bg-white border border-gray-100 text-[#111b21] rounded-lg rounded-tl-sm pr-10'}`}>
-                                <p className="mb-3 pr-2 whitespace-pre-wrap">{msg.text}</p>
-                                <span className="text-[10px] text-gray-500 absolute bottom-1 right-2">
-                                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                       })}
+                       {messages.map((msg, index) => (
+                           <MessageBubble
+                             key={msg._id || index}
+                             msg={msg}
+                             isMe={msg.senderType === 'Student'}
+                           />
+                       ))}
                        
                        {isTyping && (
                           <div className="flex justify-start">
@@ -357,23 +401,14 @@ export default function SocietyChat() {
 
               {/* Input Box */}
               <div className="p-3 bg-[#f0f2f5] shrink-0 border-t border-gray-200">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2 max-w-4xl mx-auto">
-                  <input 
-                    type="text" 
-                    placeholder="Type a message" 
-                    value={newMessage}
-                    onChange={handleTyping}
-                    disabled={selectedChat.society.isActive === false}
-                    className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 outline-none focus:ring-1 focus:ring-sliit-blue text-[15px] disabled:bg-gray-200 disabled:cursor-not-allowed shadow-sm"
-                  />
-                  <button 
-                    type="submit"
-                    disabled={!newMessage.trim() || selectedChat.society.isActive === false}
-                    className="p-3 bg-sliit-blue hover:bg-blue-800 disabled:bg-gray-400 text-white rounded-lg transition-colors shadow-sm"
-                  >
-                    <Send className="h-5 w-5" />
-                  </button>
-                </form>
+                <ChatInput
+                  value={newMessage}
+                  onChange={handleTyping}
+                  onSend={handleSendMessage}
+                  placeholder="Type a message…"
+                  disabled={selectedChat.society.isActive === false}
+                  accentClass="bg-sliit-blue hover:bg-blue-800"
+                />
               </div>
            </>
         )}
