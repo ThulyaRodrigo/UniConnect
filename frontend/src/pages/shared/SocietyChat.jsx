@@ -20,6 +20,9 @@ export default function SocietyChat() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Mobile: 'list' shows left sidebar, 'chat' shows right panel
+  const [mobileView, setMobileView] = useState('list');
   
   const [socket, setSocket] = useState(null);
   const [typing, setTyping] = useState(false);
@@ -248,7 +251,7 @@ export default function SocietyChat() {
     return (
       <div 
         key={society._id} 
-        onClick={() => setSelectedChat(isNewChat ? { society } : item)}
+        onClick={() => { setSelectedChat(isNewChat ? { society } : item); setMobileView('chat'); }}
         className={`p-4 cursor-pointer flex items-center gap-3 transition-colors ${isSelected ? 'bg-blue-50 border-l-4 border-sliit-blue' : 'hover:bg-gray-100 border-l-4 border-transparent'} ${isDisabled ? 'opacity-60' : ''}`}
       >
         {/* Avatar with status dot */}
@@ -286,8 +289,12 @@ export default function SocietyChat() {
   return (
     <div className="h-[calc(100vh-8rem)] flex bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       
-      {/* Left Sidebar */}
-      <div className="w-1/3 border-r border-gray-200 flex flex-col bg-gray-50 min-w-[300px]">
+      {/* Left Sidebar — full width on mobile, 1/3 on desktop */}
+      <div className={`
+        flex flex-col bg-gray-50 border-r border-gray-200
+        w-full md:w-1/3 md:min-w-[300px]
+        ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}
+      `}>
         <div className="p-4 border-b border-gray-200 bg-white">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Messages</h2>
           <div className="relative">
@@ -325,8 +332,12 @@ export default function SocietyChat() {
         </div>
       </div>
 
-      {/* Right Sidebar - Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#f0f2f5] relative">
+      {/* Right Sidebar - Chat Area — full width on mobile, flex-1 on desktop */}
+      <div className={`
+        flex-col bg-[#f0f2f5] relative
+        w-full md:flex-1
+        ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}
+      `}>
         {!selectedChat ? (
            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
                <div className="w-24 h-24 mb-4 opacity-20"><MessageSquareIcon /></div>
@@ -336,8 +347,19 @@ export default function SocietyChat() {
         ) : (
            <>
               {/* Header */}
-              <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shrink-0 shadow-sm z-10">
+              <div className="h-16 border-b border-gray-200 flex items-center justify-between px-4 md:px-6 bg-white shrink-0 shadow-sm z-10">
                 <div className="flex items-center gap-3">
+                  {/* Mobile back button */}
+                  <button
+                    onClick={() => setMobileView('list')}
+                    className="md:hidden p-1.5 -ml-1 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+                    aria-label="Back to conversations"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+
                   <div className="h-10 w-10 rounded-full bg-blue-100 text-sliit-blue flex items-center justify-center font-bold overflow-hidden border border-gray-200">
                      {selectedChat.society.logo ? <img src={selectedChat.society.logo} className="w-full h-full object-cover" /> : selectedChat.society.name.substring(0,2).toUpperCase()}
                   </div>
