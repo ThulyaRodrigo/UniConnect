@@ -10,7 +10,7 @@ const sendTicketEmail = async (options) => {
     });
 
     const mailOptions = {
-        from: `"UniConnet Events" <${process.env.EMAIL_USER}>`,
+        from: `"UniConnect Events" <${process.env.EMAIL_USER}>`,
         to: options.email,
         subject: options.subject,
         html: options.html,

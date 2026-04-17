@@ -65,9 +65,9 @@ export default function Signup() {
     e.preventDefault();
     setError('');
 
-    const itRegex = /^(it|IT)\d{8}$/;
-    if (!itRegex.test(formData.studentId)) {
-        setError('Student ID must start with IT and contain exactly 10 characters.');
+    const idRegex = /^[a-zA-Z]{2}\d{8}$/;
+    if (!idRegex.test(formData.studentId)) {
+        setError('Student ID must start with 2 letters followed by exactly 8 digits (10 characters total).');
         return;
     }
 
@@ -135,7 +135,7 @@ export default function Signup() {
                 Welcome aboard, {formData.name.split(' ')[0]}! 🎉
               </h2>
               <p className="text-gray-500 mb-8">
-                Your UniConnet account has been created successfully. You're all set to explore campus events, societies, and more.
+                Your UniConnect account has been created successfully. You're all set to explore campus events, societies, and more.
               </p>
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 text-left">
                 <p className="text-xs font-bold text-sliit-blue uppercase tracking-wider mb-1">Signed in as</p>
@@ -158,7 +158,7 @@ export default function Signup() {
           {!isSuccess && (
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="mb-5 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-gray-900">Join UniConnet</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Join UniConnect</h2>
             <p className="text-gray-500 ">Create your official campus account.</p>
           </div>
 
@@ -198,7 +198,7 @@ export default function Signup() {
                   name="studentId"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
-                  placeholder="itxxxxxxxx"
+                  placeholder="xx12345678"
                   onChange={handleChange}
                 />
               </div>
@@ -215,7 +215,7 @@ export default function Signup() {
                   name="email"
                   required
                   className="pl-10 w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sliit-blue outline-none transition-all"
-                  placeholder="itxxxxxxxx@my.sliit.lk"
+                  placeholder="xx12345678@my.sliit.lk"
                   onChange={handleChange}
                 />
               </div>
@@ -332,7 +332,7 @@ export default function Signup() {
           <GraduationCap className="h-16 w-16 text-sliit-orange mb-6 drop-shadow-md" />
           <h2 className="text-4xl font-bold mb-6 text-shadow-md">Elevate your university experience.</h2>
           <p className="text-gray-100 max-w-md mx-auto text-lg text-shadow-sm font-medium">
-            Join thousands of SLIIT students currently organizing, tracking, and attending campus events with UniConnet.
+            Join thousands of SLIIT students currently organizing, tracking, and attending campus events with UniConnect.
           </p>
         </div>
       </div>

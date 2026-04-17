@@ -183,7 +183,7 @@ export default function Layout() {
           ) : (
              <GraduationCap className="h-8 w-8 text-sliit-orange mr-3" />
           )}
-          <h1 className="text-2xl font-bold tracking-wide">UniConnet</h1>
+          <h1 className="text-2xl font-bold tracking-wide">UniConnect</h1>
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
