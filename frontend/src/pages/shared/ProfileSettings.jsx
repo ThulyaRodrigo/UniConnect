@@ -98,7 +98,7 @@ export default function ProfileSettings() {
         </div>
       )}
 
-      <Snackbar open={snackbar} autoHideDuration={3000} onClose={() => setSnackbar(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+      <Snackbar open={snackbar} autoHideDuration={3000} onClose={() => setSnackbar(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity="success" sx={{ width: '100%' }}>Profile updated successfully!</Alert>
       </Snackbar>
     </div>
