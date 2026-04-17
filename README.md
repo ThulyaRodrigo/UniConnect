@@ -90,6 +90,29 @@ npm run dev
 npm start
 ```
 
+## 🧪 End-to-End Testing (Playwright)
+
+UniConnect utilizes a comprehensive suite of Playwright E2E tests covering all four user personas to guarantee system integrity natively:
+
+### 1. Database Seeding
+Ensure you seed the database with the pre-defined test users and specific mock data to prevent race conditions during testing.
+```bash
+cd backend
+node seedTestUsers.js
+```
+
+### 2. Running the E2E Tests
+Tests are located inside `/frontend/e2e/`. Start your backend (`npm run dev` in `/backend`) and frontend (`npm run dev` in `/frontend`), then deploy the test runners:
+```bash
+cd frontend
+
+# Run all test suites natively in headless mode:
+npx playwright test
+
+# Run a specific persona context visually:
+npx playwright test e2e/persona1-malindu.spec.js --ui
+```
+
 ## 🔒 Security & Validations
 - **Temporal Strictness:** Rejects time-traveling date forms globally.
 - **Regex Enforcement:** Sri Lankan university patterns (`ITxxxxxxxx@my.sliit.lk`) are structurally enforced out of the box natively.
