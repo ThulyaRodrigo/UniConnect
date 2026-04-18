@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-test.describe('Persona 1: Student Buyer - Malindu', () => {
+test.describe.serial('Persona 1: Student Buyer - Malindu', () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto('/');

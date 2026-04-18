@@ -20,6 +20,7 @@ const seedTestUsers = async () => {
           "it12345678@my.sliit.lk",
           "it45678900@my.sliit.lk",
           "it23456789@my.sliit.lk",
+          "dummy@my.sliit.lk",
         ],
       },
     });

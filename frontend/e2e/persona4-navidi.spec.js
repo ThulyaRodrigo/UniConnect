@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
 
-test.describe('Persona 4: Super Admin - Navidi', () => {
+test.describe.serial('Persona 4: Super Admin - Navidi', () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
