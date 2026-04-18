@@ -5,20 +5,27 @@ UniConnect is a comprehensive university event management and logistics platform
 ## 🌟 Key Features
 
 ### For Students
-- **Event Discovery:** Browse and search for upcoming campus events seamlessly.
-- **Secure Ticketing:** Book single or group tickets securely.
+- **Event Discovery & Calendar:** Browse and search for upcoming campus events seamlessly with a dedicated visual calendar view.
+- **Secure Ticketing & Management:** Book single or group tickets securely and manage past/upcoming bookings in a dedicated dashboard.
 - **Transport Selection:** Automatically book shuttle transport for events on global campus routes.
+- **Society & Global Communications:** Actively participate in society group chats and channels.
 - **Profile Management:** Dynamic user profiles showing verified leadership history and current administrative board roles.
+- **System Feedback:** Submit structured system feedback and feature requests natively to platform administrators.
 
 ### For Society Admins
 - **Event Management Engine:** Create robust events with strict temporal checks, image uploads (Cloudinary), and capacity limits.
 - **Transport Logistics & Manifests:** Seamlessly attach master campus routes to events. Automatically compile and download CSV passenger manifests (including attendee phone numbers for emergency routing).
 - **Attendee Tracking & Exports:** Track real-time ticket sales correctly and strictly enforce event modification checks (automatically sending HTML emails to attendees on schedule/location changes).
 - **Automated AI Slip Verification:** Verify student bank transfer slips using integrated Google Gemini AI OCR, drastically reducing manual review times for pending bookings.
+- **Dedicated Admin Messaging:** Collaborate efficiently with fellow board members via secure admin-only chat integrations.
+- **Society Branding & Settings:** Deeply configure society parameters, including social links, descriptions, and verified banking info.
 
 ### For Super Admins
 - **Society & Board Governance:** Oversee society creation, bank configurations, and assign leadership titles to students natively.
+- **Leadership Handovers:** Facilitate and authorize seamless transitions of society board leadership between academic periods securely.
 - **Master Route Logistics:** Manage global shuttle transport routes universally available for incoming events.
+- **Global Feedback Moderation:** Monitor, review, and act upon platform feedback submitted by the student body globally.
+- **Portal Core Settings:** Dynamically control and restrict overarching system variables and platform configurations.
 
 ## 🛠 Tech Stack
 
